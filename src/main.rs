@@ -1,3 +1,4 @@
+mod ui;
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -10,6 +11,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
+        .add_startup_system(ui::setup_ui)
         .add_startup_system(setup)
         .add_system(sprite_movement_system)
         .run();
