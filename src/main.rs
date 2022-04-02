@@ -1,6 +1,6 @@
+mod game;
 mod player_physics;
 mod ui;
-mod game;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use player_physics::{player_movement, Player};
