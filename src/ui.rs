@@ -1,4 +1,8 @@
 use bevy::prelude::*;
+use crate::game::*;
+
+#[derive(Component)]
+pub struct DateTag {}
 
 pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(UiCameraBundle::default());
@@ -33,7 +37,7 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                     }
                 ),
                 ..Default::default()
-            });
+            }).insert(DateTag{});
         })
     ;
     // The bundle holding the RHS 30% of the display
@@ -72,4 +76,38 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                 });
             })
         ;
+}
+
+pub fn update(mut query: Query<(&mut Text, &DateTag)>, state: Res<GameState>) {
+    for (mut x, _) in query.iter_mut() {
+        x.sections[0].value = format!("It’s {}, {}{} March 2020", march_2020_dow(state.date), state.date, english_ordinal(state.date));
+    }
+}
+
+fn march_2020_dow(day: i32) -> &'static str {
+    // 1 March 2020 was a Sunday
+    return match day % 7 {
+        0 => "Saturday",
+        1 => "Sunday",
+        2 => "Monday",
+        3 => "Tuesday",
+        4 => "Wednesday",
+        5 => "Thursday",
+        6 => "Friday",
+        _ => "Badday",
+    }
+}
+
+fn english_ordinal(day: i32) -> &'static str {
+    if day % 100 == 11 || day % 100 == 12 || day % 100 == 13 {
+        return "th";
+    } else if day % 10 == 1 {
+        return "st";
+    } else if day % 10 == 2 {
+        return "nd";
+    } else if day % 10 == 3 {
+        return "rd";
+    } else {
+        return "th";
+    }
 }
