@@ -12,6 +12,7 @@ fn main() {
             width: 1324.,
             height: 1024.,
             vsync: true,
+            scale_factor_override: Some(1.0),
             ..Default::default()
         })
         .insert_resource(ClearColor(Color::rgb(255.0, 255.0, 255.0)))
