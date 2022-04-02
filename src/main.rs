@@ -21,17 +21,19 @@ fn sprite_movement_system(
 ) {
     let (_, mut transform) = query.get_single_mut().unwrap();
 
-    let mut direction = 0.0;
+    let mut horizontal = 0.0;
+    let mut vertical = 0.0;
+
     if keyboard_input.pressed(KeyCode::Left) {
-        direction -= 1.0;
+        horizontal -= 1.0;
     }
 
     if keyboard_input.pressed(KeyCode::Right) {
-        direction += 1.0;
+        horizontal += 1.0;
     }
 
     let translation = &mut transform.translation;
-    translation.x += direction;
+    translation.x += horizontal;
     translation.x = translation.x.min(380.0).max(-380.0);
 }
 
