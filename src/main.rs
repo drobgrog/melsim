@@ -3,12 +3,15 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use player_physics::{player_movement, Player};
 
+const SCREEN_HEIGHT: f32 = 1024.0;
+const SCREEN_WIDTH: f32 = 1324.0;
+
 fn main() {
     App::new()
         .insert_resource(WindowDescriptor {
             title: String::from("Melbourne Lockdown Simulator"),
-            width: 1324.,
-            height: 1024.,
+            width: SCREEN_WIDTH,
+            height: SCREEN_HEIGHT,
             vsync: true,
             ..Default::default()
         })
@@ -27,10 +30,15 @@ fn setup(
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
+    let shower_x = (-SCREEN_WIDTH / 2.) + 64.;
+    let shower_y = (SCREEN_HEIGHT / 2.) - 96.;
+    let translation = [shower_x, shower_y, 0.].into();
+    println!("Shower translation: {:?}", translation);
+
     commands.spawn_bundle(SpriteBundle {
-        texture: asset_server.load("environment.png"),
+        texture: asset_server.load("shower.png"),
         transform: Transform {
-            translation: [-162., 0., 0.0].into(),
+            translation,
             ..Default::default()
         },
         ..Default::default()
