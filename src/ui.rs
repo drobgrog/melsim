@@ -15,12 +15,11 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                 position_type: PositionType::Absolute,
                 ..Default::default()
             },
-            color: Color::rgb(1., 1., 1.).into(),
+            color: Color::rgb(0., 0., 0.).into(),
             ..Default::default()
         }).with_children(|parent| {
             parent.spawn_bundle(TextBundle {
                 style: Style {
-                    //size: Size::new(Val::Percent(100.), Val::Percent(100.)),
                     margin: Rect::all(Val::Px(5.)),
                     ..Default::default()
                 },
@@ -29,7 +28,7 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                     TextStyle {
                         font: asset_server.load("fonts/SFPro.ttf"),
                         font_size: 20.,
-                        color: Color::rgb(0., 0., 0.),
+                        color: Color::rgb(1., 1., 1.),
                     },
                     TextAlignment {
                         vertical: VerticalAlign::Center,
@@ -44,7 +43,6 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(NodeBundle {
             style: Style {
                 size: Size::new(Val::Percent(30.0), Val::Percent(100.0)),
-                //position: Rect{ top: Val::Px(0.), bottom: Val::Px(0.), right: Val::Percent(100.0), left: Val::Percent(70.) },
                 position: Rect{ top: Val::Percent(0.), bottom: Val::Percent(0.), right: Val::Percent(100.), left: Val::Percent(70.) },
                 position_type: PositionType::Absolute,
                 justify_content: JustifyContent::SpaceBetween,
