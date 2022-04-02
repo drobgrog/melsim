@@ -1,4 +1,5 @@
 mod player_physics;
+mod ui;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use player_physics::{player_movement, Player};
@@ -15,6 +16,7 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(255.0, 255.0, 255.0)))
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_startup_system(ui::setup_ui)
         .add_startup_system(setup)
         .add_system(player_movement)
         .run();
