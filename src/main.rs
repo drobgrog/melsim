@@ -7,6 +7,9 @@ fn main() {
     App::new()
         .insert_resource(WindowDescriptor {
             title: String::from("Melbourne Lockdown Simulator"),
+            width: 1324.,
+            height: 1024.,
+            vsync: true,
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
@@ -32,22 +35,40 @@ fn sprite_movement_system(
         horizontal += 1.0;
     }
 
+    if keyboard_input.pressed(KeyCode::Down) {
+        vertical -= 1.0;
+    }
+
+    if keyboard_input.pressed(KeyCode::Up) {
+        vertical += 1.0;
+    }
+
     let translation = &mut transform.translation;
     translation.x += horizontal;
-    translation.x = translation.x.min(380.0).max(-380.0);
+    translation.y += vertical;
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-    let transform = Transform {
-        translation: Vec3::new(0., 0., 0.),
-        scale: Vec3::new(0.1, 0.1, 0.1),
-        rotation: Default::default(),
-    };
-    let mut e = commands.spawn_bundle(SpriteBundle {
-        texture: asset_server.load("test.png"),
-        transform,
-        ..Default::default()
-    });
-    e.insert(Player {});
+
+    commands
+        .spawn_bundle(SpriteBundle {
+            texture: asset_server.load("environment.png"),
+            transform: Transform {
+                translation: [-162., 0., 0.1].into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .with_children(|p| {
+            p.spawn_bundle(SpriteBundle {
+                texture: asset_server.load("player.png"),
+                transform: Transform {
+                    translation: Vec3::new(0., 0., 1.),
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .insert(Player {});
+        });
 }
