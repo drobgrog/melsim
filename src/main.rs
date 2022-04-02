@@ -12,8 +12,10 @@ fn main() {
             vsync: true,
             ..Default::default()
         })
+        .insert_resource(ClearColor(Color::rgb(255.0, 255.0, 255.0)))
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
+        .add_startup_system(setup_physics.system())
         .add_system(sprite_movement_system)
         .run();
 }
@@ -71,4 +73,29 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             })
             .insert(Player {});
         });
+}
+
+fn setup_physics(mut commands: Commands) {
+    /* Create the ground. */
+    let collider = ColliderBundle {
+        shape: ColliderShape::cuboid(100.0, 0.1).into(),
+        ..Default::default()
+    };
+    commands.spawn_bundle(collider);
+
+    /* Create the bouncing ball. */
+    let rigid_body = RigidBodyBundle {
+        position: Vec2::new(0.0, 10.0).into(),
+        ..Default::default()
+    };
+    let collider = ColliderBundle {
+        shape: ColliderShape::ball(0.5).into(),
+        material: ColliderMaterial {
+            restitution: 0.7,
+            ..Default::default()
+        }
+        .into(),
+        ..Default::default()
+    };
+    commands.spawn_bundle(rigid_body).insert_bundle(collider);
 }
