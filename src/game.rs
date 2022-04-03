@@ -152,9 +152,10 @@ impl GameState {
         };
 
         let msg_xpos = (SCREEN_WIDTH / 2.) - (ui::rhs_width() / 2.);
-        let message_bubble_width = 215.;
+        let message_bubble_width = 235.;
         let sender_ofs = -message_bubble_width / 2. + 10.;
-        let message_ofs = -message_bubble_width / 2. + 25.;
+        let message_padding_left = -message_bubble_width / 2. + 25.;
+        let message_padding_right = 10.;
 
         // This is the "physical bottom", i.e., if we had a one pixel object, we'd position it here
         // in order to get it in the right place
@@ -163,7 +164,7 @@ impl GameState {
 
         for x in &mut self.messages.iter_mut().rev() {
             let laid_out_message =
-                ui::lay_out_text_monofonto(message_font_size, message_bubble_width, &x.text);
+                ui::lay_out_text_monofonto(message_font_size, message_bubble_width - message_padding_right, &x.text);
 
             // Containing box
             let ct_box_height = sender_font_size
@@ -200,7 +201,7 @@ impl GameState {
                     parent.spawn_bundle(Text2dBundle {
                         text: Text::with_section(l.clone(), text_style_message.clone(), align),
                         transform: Transform {
-                            translation: Vec3::new(message_ofs, inside_bottom, 11.),
+                            translation: Vec3::new(message_padding_left, inside_bottom, 11.),
                             ..Default::default()
                         },
                         ..Default::default()
