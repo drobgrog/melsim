@@ -95,7 +95,12 @@ pub fn logic(
         ui::spawn_sanity_number(sanity_change, &mut commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
     }
 
-    state.run_narrative(&time);
+    state.run_narrative(
+        &time,
+        &mut commands,
+        &asset_server,
+        &player,
+    );
 
     if state.last_msg_date != state.date {
         if state.date % 2 == 1 {
@@ -249,7 +254,12 @@ impl GameState {
         return 0;
     }
 
-    fn run_narrative(&mut self, time: &Res<Time>) {
+    fn run_narrative(&mut self,
+        time: &Res<Time>,
+        commands: &mut Commands,
+        asset_server: &Res<AssetServer>,
+        player: &Query<(&Player, &Transform)>
+    ) {
         if self.in_covid_narrative && self.next_covid_narrative_id >= self.covid_narrative.len() {
             // end of the covid narrative, so switch back to the regular narrative
             self.in_covid_narrative = false;
@@ -263,7 +273,12 @@ impl GameState {
             println!("Uh-oh, got to the end of the narrative!");
         } else {
             if self.criterion_met(&self.main_narrative[self.next_narrative_id].criterion, time) {
-                self.do_narrative_actions(self.main_narrative[self.next_narrative_id].action.clone());
+                self.do_narrative_actions(
+                    self.main_narrative[self.next_narrative_id].action.clone(),
+                    commands,
+                    asset_server,
+                    player,
+                );
                 if self.main_narrative[self.next_narrative_id].starts_act {
                     self.narrative_start_of_act = self.next_narrative_id;
                 }
@@ -280,6 +295,20 @@ impl GameState {
         };
     }
 
-    fn do_narrative_actions(&mut self, a: NarrativeActions) {
+    fn do_narrative_actions(&mut self,
+        a: NarrativeActions,
+        commands: &mut Commands,
+        asset_server: &Res<AssetServer>,
+        player: &Query<(&Player, &Transform)>
+    ) {
+        if let Some(ds) = a.change_sanity {
+            self.sanity += ds;
+            let (_, player_tx) = player.single();
+            ui::spawn_sanity_number(ds, commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
+        }
+
+        for m in a.send_texts {
+
+        }
     }
 }

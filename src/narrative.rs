@@ -13,8 +13,8 @@ pub enum NarrativeCriterion {
 
 #[derive(Default,Clone)]
 pub struct NarrativeActions {
-    send_texts: Vec<NarrativeTextMessage>,
-    change_sanity: Option<i32>,  // Some(0) produces a literal '0' indicator
+    pub send_texts: Vec<NarrativeTextMessage>,
+    pub change_sanity: Option<i32>,  // Some(0) produces a literal '0' indicator
     //spawn_item: Vec<SpawnablePickup>,
 }
 
@@ -41,6 +41,11 @@ pub fn make_main_narrative() -> Vec<NarrativeEvent> {
         },
         NarrativeEvent{
             starts_act: false,
+            criterion: NarrativeCriterion::ElapsedRel(1.5),
+            action: change_sanity(3),
+        },
+        NarrativeEvent{
+            starts_act: false,
             criterion: NarrativeCriterion::ElapsedRel(3.5),
             action: send_text(
                 "Mum",
@@ -54,7 +59,6 @@ pub fn make_covid_narrative() -> Vec<NarrativeEvent> {
     vec![]
 }
 
-
 // helper constructors
 fn send_text(sender: &str, body: &str) -> NarrativeActions {
     NarrativeActions{
@@ -67,4 +71,13 @@ fn send_text(sender: &str, body: &str) -> NarrativeActions {
         change_sanity: None,
         //spawn_item: vec![],
     }
+}
+
+fn change_sanity(by: i32) -> NarrativeActions {
+    NarrativeActions{
+        send_texts: Vec::new(),
+        change_sanity: Some(by),
+        //spawn_item: vec![],
+    }
+
 }
