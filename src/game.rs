@@ -126,6 +126,11 @@ pub fn logic(
 
             x.e = Some(ety.id());
             bottom += ct_box_height + inter_message_spacing;
+
+            if bottom > SCREEN_HEIGHT / 2. {
+                // don't need to render any more
+                break;
+            }
         }
     }
 }
