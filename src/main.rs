@@ -1,6 +1,6 @@
+mod game;
 mod player_physics;
 mod ui;
-mod game;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use player_physics::{player_movement, Player};
@@ -15,6 +15,7 @@ fn main() {
             width: SCREEN_WIDTH,
             height: SCREEN_HEIGHT,
             vsync: true,
+            scale_factor_override: Some(1.0),
             ..Default::default()
         })
         .insert_resource(ClearColor(Color::rgb(255.0, 255.0, 255.0)))
