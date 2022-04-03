@@ -2,6 +2,7 @@ pub mod covid;
 pub mod environment;
 mod game;
 mod player;
+pub mod teleportation;
 mod ui;
 use crate::covid::covid_system;
 use bevy::prelude::*;
@@ -9,6 +10,7 @@ use bevy_rapier2d::physics::{NoUserData, RapierConfiguration, RapierPhysicsPlugi
 use environment::setup_environment;
 use player::player_movement;
 use player::setup_player;
+use teleportation::teleportation_system;
 
 const SCREEN_HEIGHT: f32 = 1000.0;
 const SCREEN_WIDTH: f32 = 1324.0;
@@ -36,6 +38,7 @@ fn main() {
         .add_system(covid_system)
         .add_system(ui::update)
         .add_system(game::logic)
+        .add_system(teleportation_system)
         // .add_plugin(RapierRenderPlugin) // un-comment for a debug view of colliders
         .run();
 }

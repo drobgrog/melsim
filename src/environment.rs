@@ -24,6 +24,9 @@ pub fn setup_environment(mut commands: Commands, asset_server: Res<AssetServer>)
     for collider in &environment_colliders {
         add_collider(&mut commands, collider);
     }
+
+    let teleporter = EnvironmentCollider::new(1, 19, 3, 1);
+    add_teleporter(&mut commands, &teleporter);
 }
 
 struct EnvironmentCollider {
@@ -53,12 +56,35 @@ fn add_collider(commands: &mut Commands, collider: &EnvironmentCollider) {
         (SCREEN_HEIGHT / 2.) - 30. - (y_pos as f32 * TILE_SIZE) - ((height * TILE_SIZE) / 2.);
 
     println!("COLLIDER: x pos: {:?}, y pos {:?}", collider_x, collider_y);
+    commands.spawn_bundle(ColliderBundle {
+        position: [collider_x / TILE_SIZE, collider_y / TILE_SIZE].into(),
+        shape: ColliderShape::cuboid(width as f32 / 2., height as f32 / 2.).into(),
+        ..Default::default()
+    });
+}
+
+fn add_teleporter(commands: &mut Commands, collider: &EnvironmentCollider) {
+    let (x_pos, y_pos) = (collider.x_coordinates, collider.y_coordinates);
+    let (width, height) = (collider.width as f32, collider.height as f32);
+
+    let collider_x = (-SCREEN_WIDTH / 2.) + (x_pos as f32 * TILE_SIZE) + ((width * TILE_SIZE) / 2.);
+    let collider_y =
+        (SCREEN_HEIGHT / 2.) - 30. - (y_pos as f32 * TILE_SIZE) - ((height * TILE_SIZE) / 2.);
+
+    let collider_flags = ColliderFlags {
+        active_events: ActiveEvents::all(),
+        ..Default::default()
+    }
+    .into();
+
+    println!("COLLIDER: x pos: {:?}, y pos {:?}", collider_x, collider_y);
     commands
         .spawn_bundle(ColliderBundle {
+            flags: collider_flags,
+            collider_type: ColliderType::Sensor.into(),
             position: [collider_x / TILE_SIZE, collider_y / TILE_SIZE].into(),
             shape: ColliderShape::cuboid(width as f32 / 2., height as f32 / 2.).into(),
             ..Default::default()
         })
-        .insert(ColliderDebugRender::with_id(2))
-        .insert(ColliderPositionSync::Discrete);
+        .insert(ColliderDebugRender::with_id(2));
 }
