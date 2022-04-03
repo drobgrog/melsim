@@ -12,12 +12,8 @@ pub struct GameState {
     last_msg_date: i32,
     pub last_msg_animation_time: f64,
 
-    pub mental_health: f32,
+    pub sanity: f32,
     pub mh_loss_factor: f32,
-
-    // UI stuff
-    pub mhb_the_bar: Option<Entity>,
-    pub mhb_bar_covering: Option<Entity>,
 
     pub show_covid_risk: bool,
     pub covid_risk: f32,
@@ -50,16 +46,16 @@ pub fn debug_keys(
     }
     if key.just_pressed(KeyCode::P) {
         let (_, player_tx) = player.single();
-        ui::spawn_mental_health_number(3, &mut commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
+        ui::spawn_sanity_number(3, &mut commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
     }
     if key.just_pressed(KeyCode::O) {
         let (_, player_tx) = player.single();
-        ui::spawn_mental_health_number(-7, &mut commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
+        ui::spawn_sanity_number(-7, &mut commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
     }
 }
 
 pub fn setup_state(mut state: ResMut<GameState>) {
-    state.mental_health = 0.75;
+    state.sanity = 0.75;
     state.mh_loss_factor = 0.002;
 
     state.covid_risk = 0.5;
@@ -79,7 +75,7 @@ pub fn logic(
         state.new_day();
     }
 
-    state.update_mental_health(time.delta_seconds());
+    state.update_sanity(time.delta_seconds());
 
     if state.last_msg_date != state.date {
         if state.date % 2 == 1 {
@@ -220,7 +216,7 @@ impl GameState {
         }
     }
 
-    fn update_mental_health(&mut self, dt: f32) {
-        self.mental_health -= self.mh_loss_factor * dt;
+    fn update_sanity(&mut self, dt: f32) {
+        self.sanity -= self.mh_loss_factor * dt;
     }
 }

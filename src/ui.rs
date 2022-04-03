@@ -6,10 +6,10 @@ pub struct DateTag {}
 
 // For future expansion: change the colour of the material over time
 #[derive(Component)]
-pub struct MentalHealthBarTag {}
+pub struct SanityBarTag {}
 
 #[derive(Component)]
-pub struct MentalHealthCoveringTag {}
+pub struct SanityCoveringTag {}
 
 #[derive(Component)]
 pub struct CovidRiskElement {
@@ -17,7 +17,7 @@ pub struct CovidRiskElement {
 }
 
 #[derive(Component)]
-pub struct MentalHealthNumberTween {
+pub struct SanityNumberTween {
     total_time: f32,
     time_left: f32,
     base_x: f32,
@@ -30,7 +30,7 @@ pub struct TextMessageTag {
     pub bottom_to: f32,
 }
 
-pub fn spawn_mental_health_number(
+pub fn spawn_sanity_number(
     number: i32,
     commands: &mut Commands,
     font: Handle<Font>,
@@ -66,7 +66,7 @@ pub fn spawn_mental_health_number(
             ..Default::default()
         },
         ..Default::default()
-    }).insert(MentalHealthNumberTween{
+    }).insert(SanityNumberTween{
         total_time: 1.2,
         time_left: 1.2,
         base_x: player_location.x,
@@ -74,7 +74,7 @@ pub fn spawn_mental_health_number(
     });
 }
 
-pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, mut state: ResMut<GameState>) {
+pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(UiCameraBundle::default());
     // The bundle holding the status bar i.e. the date
     commands
@@ -138,7 +138,7 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, mut stat
     });
 
 
-    // The bundle for the "Mental Health" bar
+    // The bundle for the "Sanity" bar
     let main_display_height = 1000.;
     let main_display_width = 1000.;
     let mhb_bar_height = 40.;
@@ -157,7 +157,7 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, mut stat
 
     // The actual bar itself
     let mhb_bar_offset = 210.;
-    state.mhb_the_bar = Some(commands.spawn_bundle(SpriteBundle{
+    commands.spawn_bundle(SpriteBundle{
         texture: asset_server.load("ui/mh_bar.png"),
         transform: Transform {
             translation: [(-SCREEN_WIDTH / 2.) + (mhb_bar_filling_width() / 2.) + mhb_bar_offset, mhb_ypos, 11.].into(),
@@ -168,11 +168,11 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, mut stat
             ..Default::default()
         },
         ..Default::default()
-    }).insert(MentalHealthBarTag{}).id());
+    }).insert(SanityBarTag{});
 
 
     // The white zone covering the bar. Don't ask.
-    state.mhb_bar_covering = Some(commands.spawn_bundle(SpriteBundle{
+    commands.spawn_bundle(SpriteBundle{
         transform: Transform {
             translation: [(-SCREEN_WIDTH / 2.) + (mhb_bar_filling_width() / 2.) + mhb_bar_offset, mhb_ypos-1., 12.].into(),
             ..Default::default()
@@ -183,7 +183,7 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, mut stat
             ..Default::default()
         },
         ..Default::default()
-    }).insert(MentalHealthCoveringTag{}).id());
+    }).insert(SanityCoveringTag{});
 
     // The Covid risk indicator
     // background
@@ -268,10 +268,10 @@ pub fn update(mut query: Query<(&mut Text, &DateTag)>, state: Res<GameState>) {
     }
 }
 
-pub fn update_mental_health_bar_covering(mut query: Query<(&mut Sprite, &mut Transform, &MentalHealthCoveringTag)>, state: Res<GameState>) {
+pub fn update_sanity_bar_covering(mut query: Query<(&mut Sprite, &mut Transform, &SanityCoveringTag)>, state: Res<GameState>) {
     let (mut sprite, mut tx, _) = query.single_mut();
 
-    let width = mhb_bar_filling_width() * (1. - state.mental_health);
+    let width = mhb_bar_filling_width() * (1. - state.sanity);
 
     sprite.custom_size = Some(Vec2::new(width, mhb_bar_filling_height()));
     tx.translation = [
@@ -309,7 +309,7 @@ pub fn text_message_animator(mut query: Query<(&TextMessageTag, &mut Transform)>
     }
 }
 
-pub fn mental_health_number_tween(mut commands: Commands, mut query: Query<(&mut MentalHealthNumberTween, &mut Transform, &mut Text, Entity)>, time: Res<Time>) {
+pub fn sanity_number_tween(mut commands: Commands, mut query: Query<(&mut SanityNumberTween, &mut Transform, &mut Text, Entity)>, time: Res<Time>) {
     let dt = time.delta_seconds();
     for (mut mhn, mut t, mut txt, ety) in query.iter_mut() {
         mhn.time_left -= dt;
