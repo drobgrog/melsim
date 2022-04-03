@@ -16,6 +16,10 @@ pub struct GameState {
     // UI stuff
     pub mhb_the_bar: Option<Entity>,
     pub mhb_bar_covering: Option<Entity>,
+
+    pub show_covid_risk: bool,
+    pub covid_risk: f32,
+    pub last_covid_risk_shown: f64,
 }
 
 struct TextMessage {
@@ -24,9 +28,28 @@ struct TextMessage {
     e: Option<Entity>,
 }
 
+pub fn debug_keys(
+    key: Res<Input<KeyCode>>,
+    mut state: ResMut<GameState>,
+    time: Res<Time>,
+) {
+    if key.just_pressed(KeyCode::C) {
+        state.show_covid_risk = !state.show_covid_risk;
+        state.last_covid_risk_shown  = time.seconds_since_startup();
+    }
+    if key.just_pressed(KeyCode::V) {
+        state.covid_risk += 0.1;
+    }
+    if key.just_pressed(KeyCode::B) {
+        state.covid_risk -= 0.1;
+    }
+}
+
 pub fn setup_state(mut state: ResMut<GameState>) {
     state.mental_health = 0.75;
     state.mh_loss_factor = 0.002;
+
+    state.covid_risk = 0.5;
 
     // `date` handled automatically by `logic`
 }

@@ -39,8 +39,10 @@ fn main() {
         .add_system(covid_system)
         .add_system(ui::update)
         .add_system(ui::update_mental_health_bar_covering)
+        .add_system(ui::update_covid_risk)
         .add_system(game::logic)
         .add_system(teleportation_system)
+        .add_system(game::debug_keys)
         // .add_plugin(RapierRenderPlugin) // un-comment for a debug view of colliders
         .run();
 }

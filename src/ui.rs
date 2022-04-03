@@ -1,4 +1,4 @@
-use crate::{game::*, SCREEN_WIDTH};
+use crate::{game::*, SCREEN_WIDTH, SCREEN_HEIGHT};
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -10,6 +10,11 @@ pub struct MentalHealthBarTag {}
 
 #[derive(Component)]
 pub struct MentalHealthCoveringTag {}
+
+#[derive(Component)]
+pub struct CovidRiskElement {
+    min_risk: f32,
+}
 
 pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, mut state: ResMut<GameState>) {
     commands.spawn_bundle(UiCameraBundle::default());
@@ -121,6 +126,39 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, mut stat
         },
         ..Default::default()
     }).insert(MentalHealthCoveringTag{}).id());
+
+    // The Covid risk indicator
+    // background
+    commands.spawn_bundle(SpriteBundle{
+        texture: asset_server.load("ui/covid_risk_bg.png"),
+        transform: Transform {
+            translation: [-SCREEN_WIDTH/2. + 1162., -SCREEN_HEIGHT/2. + 788., 25.].into(),
+            ..Default::default()
+        },
+        sprite: Sprite {
+            ..Default::default()
+        },
+        ..Default::default()
+    }).insert(CovidRiskElement{
+        min_risk: 0.,
+    });
+
+    for i in 0..8 {
+        commands.spawn_bundle(SpriteBundle{
+            texture: asset_server.load("ui/covid_risk_slice.png"),
+            transform: Transform {
+                translation: [-SCREEN_WIDTH/2. + 1162., -SCREEN_HEIGHT/2. + 807., 26.].into(),
+                rotation: Quat::from_rotation_z(i as f32 * (std::f32::consts::PI / 4.)),
+                ..Default::default()
+            },
+            sprite: Sprite {
+                ..Default::default()
+            },
+            ..Default::default()
+        }).insert(CovidRiskElement{
+            min_risk: (i as f32) * 1./8.,
+        });
+    }
 }
 
 pub fn rhs_width() -> f32 {
@@ -184,6 +222,33 @@ pub fn update_mental_health_bar_covering(mut query: Query<(&mut Sprite, &mut Tra
         tx.translation.z,
     ].into();
 
+}
+
+pub fn update_covid_risk(mut query: Query<(&CovidRiskElement, &mut Visibility, &mut Transform)>, state: Res<GameState>, time: Res<Time>) {
+    let tween_time = ease_in_out_circ((1./0.3) * f64::min(0.3, time.seconds_since_startup() - state.last_covid_risk_shown) as f32);
+    for (cre, mut v, mut t) in query.iter_mut() {
+        if state.show_covid_risk && state.covid_risk >= cre.min_risk {
+            v.is_visible = true;
+            t.scale.x = tween_time;
+            t.scale.y = tween_time;
+        } else {
+            if tween_time > 0.99 {
+                v.is_visible = false;
+            } else {
+                t.scale.x = 1. - tween_time;
+                t.scale.y = 1. - tween_time;
+            }
+        }
+    }
+}
+
+// see: https://easings.net/#easeInOutCirc
+fn ease_in_out_circ(x: f32) -> f32 {
+    return if x < 0.5 {
+      (1. - f32::sqrt(1. - f32::powf(2. * x, 2.))) / 2.
+    } else {
+      (f32::sqrt(1. - f32::powf(-2. * x + 2., 2.)) + 1.) / 2.
+    }
 }
 
 fn march_2020_dow(day: i32) -> &'static str {
