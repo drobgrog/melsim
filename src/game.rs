@@ -31,7 +31,7 @@ struct TextMessage {
 }
 
 pub fn debug_keys(
-    commands: Commands,
+    mut commands: Commands,
     key: Res<Input<KeyCode>>,
     mut state: ResMut<GameState>,
     time: Res<Time>,
@@ -50,7 +50,11 @@ pub fn debug_keys(
     }
     if key.just_pressed(KeyCode::P) {
         let (_, player_tx) = player.single();
-        ui::spawn_mental_health_number(commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
+        ui::spawn_mental_health_number(3, &mut commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
+    }
+    if key.just_pressed(KeyCode::O) {
+        let (_, player_tx) = player.single();
+        ui::spawn_mental_health_number(-7, &mut commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
     }
 }
 

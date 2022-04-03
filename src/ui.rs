@@ -31,21 +31,36 @@ pub struct TextMessageTag {
 }
 
 pub fn spawn_mental_health_number(
-    mut commands: Commands,
+    number: i32,
+    commands: &mut Commands,
     font: Handle<Font>,
     player_location: Vec3, // Vec3 so we can pass a translation directly
 ) {
+    let col = if number == 0 {
+        Color::rgba(0., 0., 0., 1.)
+    } else if number > 0 {
+        Color::rgba(0., 0.7, 0., 1.)
+    } else {
+        Color::rgba(0.7, 0., 0., 1.)
+    };
+    let sgn = if number == 0 {
+        ""
+    } else if number > 0 {
+        "+"
+    } else {
+        "-"
+    };
     let text_style = TextStyle{
         font: font,
         font_size: 26.,
-        color: Color::rgba(1., 0., 0., 1.),
+        color: col,
     };
     let align = TextAlignment{
         vertical: VerticalAlign::Center,
         horizontal: HorizontalAlign::Left,
     };
     commands.spawn_bundle(Text2dBundle{
-        text: Text::with_section(String::from("+123"), text_style, align),
+        text: Text::with_section(format!("{}{}", sgn, i32::abs(number)), text_style, align),
         transform: Transform {
             translation: player_location,
             ..Default::default()
@@ -309,7 +324,7 @@ pub fn mental_health_number_tween(mut commands: Commands, mut query: Query<(&mut
 
             if tween_time > 0.5 {
                 let opacity = (tween_time * 2.) - 1.;
-                txt.sections[0].style.color = Color::rgba(1., 0., 0., 1. - opacity);
+                txt.sections[0].style.color.set_a(1. - opacity);
             }
         }
     }
