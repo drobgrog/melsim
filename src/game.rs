@@ -104,18 +104,50 @@ pub fn logic(
 
     if state.last_msg_date != state.date {
         if state.date % 2 == 1 {
-            state.add_text_message("DROBGob Pathology", "test", time.seconds_since_startup());
+            state.add_text_message(
+                "DROBGob Pathology",
+                "test",
+                &time,
+                &mut commands,
+                &asset_server,
+            );
         } else {
             state.add_text_message(
                 "DROBGob Pathology",
                 "Swab collection date: 3/3/2020|Result: Covid-19 virus NEGATIVE|Tele-consult your doctor for advice applicable to your particular circumstances",
-                time.seconds_since_startup()
+                &time,
+                &mut commands,
+                &asset_server,
             );
         }
 
-        state.last_msg_date = state.date;
+    }
+}
+
+// How often should we lose (/gain) sanity just for existing?
+fn time_for_sanity_loss() -> f64 { 5. }
+
+// How much sanity do we lose then?
+fn sanity_loss_tick() -> i32 { -1 }
+
+impl GameState {
+    fn add_text_message(&mut self,
+        sender: &str,
+        msg: &str,
+        time: &Res<Time>,
+        commands: &mut Commands,
+        asset_server: &Res<AssetServer>,
+    ) {
+        self.messages.push(TextMessage {
+            sender: String::from(sender),
+            text: String::from(msg),
+            e: None,
+        });
+        self.last_msg_animation_time = time.seconds_since_startup();
+
+        self.last_msg_date = self.date;
         // Trigger a full rebuild -- delete everything else
-        for x in &mut state.messages {
+        for x in &mut self.messages {
             if let Some(ety) = x.e {
                 commands.entity(ety).despawn_recursive();
                 x.e = None;
@@ -152,7 +184,7 @@ pub fn logic(
         let mut bottom = (-SCREEN_HEIGHT / 2.) + 190.;
         let mut height_of_first = 0.;
 
-        for x in &mut state.messages.iter_mut().rev() {
+        for x in &mut self.messages.iter_mut().rev() {
             let laid_out_message =
                 ui::lay_out_text_monofonto(message_font_size, message_bubble_width, &x.text);
 
@@ -222,23 +254,6 @@ pub fn logic(
                 break;
             }
         }
-    }
-}
-
-// How often should we lose (/gain) sanity just for existing?
-fn time_for_sanity_loss() -> f64 { 5. }
-
-// How much sanity do we lose then?
-fn sanity_loss_tick() -> i32 { -1 }
-
-impl GameState {
-    fn add_text_message(&mut self, sender: &str, msg: &str, time: f64) {
-        self.messages.push(TextMessage {
-            sender: String::from(sender),
-            text: String::from(msg),
-            e: None,
-        });
-        self.last_msg_animation_time = time;
     }
 
     fn new_day(&mut self) {

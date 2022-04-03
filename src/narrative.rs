@@ -20,8 +20,8 @@ pub struct NarrativeActions {
 
 #[derive(Clone)]
 pub struct NarrativeTextMessage {
-    sender: String,
-    body: String,
+    pub sender: String,
+    pub body: String,
 }
 
 pub struct SpawnablePickup {
