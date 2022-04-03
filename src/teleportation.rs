@@ -1,3 +1,4 @@
+use crate::environment::Environment;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -18,6 +19,7 @@ pub fn teleportation_system(
     narrow_phase: Res<NarrowPhase>,
     mut player_info: Query<(Entity, &mut RigidBodyPositionComponent), With<Player>>,
     teleporter_query: Query<&Teleporter>,
+    mut environment_query: Query<(&mut TextureAtlasSprite, &mut Environment)>,
 ) {
     let (player_entity, mut player_position) = player_info.single_mut();
 
@@ -29,6 +31,14 @@ pub fn teleportation_system(
             let teleporter = teleporter_query.get(teleporter_collider.entity()).unwrap();
             println!("TELEPORTING TO {:?}", teleporter.destination);
             player_position.position.translation = [3.0, 5.0].into();
+
+            let (mut sprite, mut environment) = environment_query.single_mut();
+            environment.location = teleporter.destination;
+            sprite.index = match teleporter.destination {
+                Location::Home => 0,
+                Location::Park => 1,
+                Location::Supermarket => 2,
+            };
         }
     }
 }

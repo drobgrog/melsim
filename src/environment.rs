@@ -2,7 +2,7 @@ use crate::{teleportation::Teleporter, SCREEN_HEIGHT, SCREEN_WIDTH, TILE_SIZE};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum Location {
     Home,
     Park,
@@ -10,8 +10,8 @@ pub enum Location {
 }
 
 #[derive(Debug, Clone, Component)]
-struct Environment {
-    location: Location,
+pub struct Environment {
+    pub location: Location,
 }
 
 impl Environment {
