@@ -12,9 +12,13 @@ pub struct GameState {
     last_msg_date: i32,
     pub last_msg_animation_time: f64,
 
-    pub sanity: f32,
-    pub mh_loss_factor: f32,
+    // Sanity related information
+    pub sanity: i32,
+    // The last time sanity changed due to the passage of time
+    // This gets updated (a) when we change sanity, or (b) when we switch environment
+    pub last_sanity_tick_update: f64,
 
+    // Covid risk related information
     pub show_covid_risk: bool,
     pub covid_risk: f32,
     pub last_covid_risk_shown: f64,
@@ -55,8 +59,7 @@ pub fn debug_keys(
 }
 
 pub fn setup_state(mut state: ResMut<GameState>) {
-    state.sanity = 0.75;
-    state.mh_loss_factor = 0.002;
+    state.sanity = 75;
 
     state.covid_risk = 0.5;
 
@@ -68,6 +71,7 @@ pub fn logic(
     mut state: ResMut<GameState>,
     time: Res<Time>,
     asset_server: Res<AssetServer>,
+    player: Query<(&Player, &Transform)>,
 ) {
     state.date = 1 + (time.seconds_since_startup() / 5.) as i32;
     if state.last_date < state.date {
@@ -75,7 +79,11 @@ pub fn logic(
         state.new_day();
     }
 
-    state.update_sanity(time.delta_seconds());
+    let sanity_change = state.update_sanity(time.seconds_since_startup());
+    if sanity_change != 0 {
+        let (_, player_tx) = player.single();
+        ui::spawn_sanity_number(sanity_change, &mut commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
+    }
 
     if state.last_msg_date != state.date {
         if state.date % 2 == 1 {
@@ -200,6 +208,12 @@ pub fn logic(
     }
 }
 
+// How often should we lose (/gain) sanity just for existing?
+fn time_for_sanity_loss() -> f64 { 5. }
+
+// How much sanity do we lose then?
+fn sanity_loss_tick() -> i32 { -1 }
+
 impl GameState {
     fn add_text_message(&mut self, sender: &str, msg: &str, time: f64) {
         self.messages.push(TextMessage {
@@ -211,12 +225,15 @@ impl GameState {
     }
 
     fn new_day(&mut self) {
-        if self.date % 2 == 0 {
-            self.mh_loss_factor *= 1.05;
-        }
     }
 
-    fn update_sanity(&mut self, dt: f32) {
-        self.sanity -= self.mh_loss_factor * dt;
+    // Returns the change, if any (so it can be displayed to the user)
+    fn update_sanity(&mut self, time_since_start: f64) -> i32 {
+        if time_since_start - self.last_sanity_tick_update > time_for_sanity_loss() {
+            self.last_sanity_tick_update += time_for_sanity_loss();
+            self.sanity += sanity_loss_tick();
+            return sanity_loss_tick();
+        }
+        return 0;
     }
 }

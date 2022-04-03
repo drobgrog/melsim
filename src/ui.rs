@@ -271,7 +271,7 @@ pub fn update(mut query: Query<(&mut Text, &DateTag)>, state: Res<GameState>) {
 pub fn update_sanity_bar_covering(mut query: Query<(&mut Sprite, &mut Transform, &SanityCoveringTag)>, state: Res<GameState>) {
     let (mut sprite, mut tx, _) = query.single_mut();
 
-    let width = mhb_bar_filling_width() * (1. - state.sanity);
+    let width = mhb_bar_filling_width() * ( (100 - state.sanity) as f32 / 100.);
 
     sprite.custom_size = Some(Vec2::new(width, mhb_bar_filling_height()));
     tx.translation = [
