@@ -7,9 +7,11 @@ pub struct GameState {
     // Option<...> for the Default trait
     pub text_msg_parent: Option<Entity>,
     pub date: i32,
+    pub last_date: i32,
     last_msg_date: i32,
 
     pub mental_health: f32,
+    pub mh_loss_factor: f32,
 
     // UI stuff
     pub mhb_the_bar: Option<Entity>,
@@ -24,6 +26,7 @@ struct TextMessage {
 
 pub fn setup_state(mut state: ResMut<GameState>) {
     state.mental_health = 0.75;
+    state.mh_loss_factor = 0.002;
 
     // `date` handled automatically by `logic`
 }
@@ -36,8 +39,12 @@ pub fn logic(
     asset_server: Res<AssetServer>,
 ) {
     state.date = 1 + (time.seconds_since_startup() / 5.) as i32;
+    if state.last_date < state.date {
+        state.last_date = state.date;
+        state.new_day();
+    }
 
-    state.mental_health *= 0.999;
+    state.update_mental_health(time.delta_seconds());
 
     if state.last_msg_date != state.date {
         if state.date % 2 == 1 {
@@ -156,5 +163,15 @@ impl GameState {
             text: String::from(msg),
             e: None,
         });
+    }
+
+    fn new_day(&mut self) {
+        if self.date % 2 == 0 {
+            self.mh_loss_factor *= 1.05;
+        }
+    }
+
+    fn update_mental_health(&mut self, dt: f32) {
+        self.mental_health -= self.mh_loss_factor * dt;
     }
 }
