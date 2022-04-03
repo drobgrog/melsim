@@ -1,4 +1,4 @@
-use crate::{teleportation::Teleporter, SCREEN_HEIGHT, SCREEN_WIDTH, TILE_SIZE};
+use crate::{npc::spawn_npc, teleportation::Teleporter, SCREEN_HEIGHT, SCREEN_WIDTH, TILE_SIZE};
 use bevy::prelude::*;
 use bevy_rapier2d::{na::Translation2, prelude::*};
 
@@ -41,6 +41,8 @@ pub fn setup_environment(
         .insert(Environment::new(Location::Home));
 
     create_environment(Location::Home, &mut commands);
+
+    spawn_npc(&mut commands, &asset_server);
 }
 
 pub fn create_environment(location: Location, commands: &mut Commands) {

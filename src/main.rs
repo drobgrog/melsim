@@ -1,6 +1,7 @@
 pub mod covid;
 pub mod environment;
 mod game;
+pub mod npc;
 mod player;
 pub mod teleportation;
 mod ui;
