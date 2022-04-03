@@ -44,8 +44,8 @@ pub fn logic(
             }
         }
 
-        let message_font_size = 30.;
-        let sender_font_size = 24.;
+        let message_font_size = 24.;
+        let sender_font_size = 18.;
         let line_spacing = 2.;
         let inter_message_spacing = 20.;
 
@@ -64,9 +64,8 @@ pub fn logic(
             horizontal: HorizontalAlign::Left,
         };
 
-        // this positions the containing sprite, so again we need /3 not /6
-        let rhs_left = 0. + (SCREEN_WIDTH / 3.);
-        let message_bubble_width = 275.;
+        let msg_xpos = (SCREEN_WIDTH / 2.) - (ui::rhs_width() / 2.);
+        let message_bubble_width = 215.;
         let sender_ofs = -message_bubble_width / 2. + 10.;
         let message_ofs = -message_bubble_width / 2. + 25.;
 
@@ -90,7 +89,7 @@ pub fn logic(
                     ..Default::default()
                 },
                 transform: Transform {
-                    translation: Vec3::new(rhs_left, bottom + ct_box_height / 2., 11.),
+                    translation: Vec3::new(msg_xpos, bottom + ct_box_height / 2., 11.),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -127,6 +126,11 @@ pub fn logic(
 
             x.e = Some(ety.id());
             bottom += ct_box_height + inter_message_spacing;
+
+            if bottom > SCREEN_HEIGHT / 2. {
+                // don't need to render any more
+                break;
+            }
         }
     }
 }

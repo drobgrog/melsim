@@ -47,7 +47,7 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     // The bundle holding the RHS 30% of the display
     // The x position -- remember we translate the *centre* of the quad, so 1/3rd (not 1/6th) is
     // right
-    let xpos = 0. + (SCREEN_WIDTH / 3.);
+    let xpos = (SCREEN_WIDTH / 2.) - (rhs_width() / 2.);
     // this is white underneath
     commands.spawn_bundle(SpriteBundle {
         texture: asset_server.load("ui/white_bg.png"),
@@ -66,6 +66,10 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         ..Default::default()
     });
+}
+
+pub fn rhs_width() -> f32 {
+    324.
 }
 
 // Returns vector of lines
