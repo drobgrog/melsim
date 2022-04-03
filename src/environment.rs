@@ -40,23 +40,53 @@ pub fn setup_environment(
         })
         .insert(Environment::new(Location::Home));
 
-    let environment_colliders = vec![
-        EnvironmentCollider::new(0, 0, 11, 4),
-        EnvironmentCollider::new(10, 0, 9, 1),
-        EnvironmentCollider::new(15, 1, 4, 4),
-        EnvironmentCollider::new(19, 1, 1, 19),
-        EnvironmentCollider::new(0, 4, 3, 5),
-        EnvironmentCollider::new(3, 4, 3, 1),
-        EnvironmentCollider::new(6, 4, 1, 5),
-    ];
-    for collider in &environment_colliders {
-        add_collider(&mut commands, collider);
-    }
-
-    let teleporter = EnvironmentCollider::new(1, 19, 3, 1);
-    add_teleporter(&mut commands, &teleporter, Location::Park);
+    create_environment(Location::Home, &mut commands);
 }
 
+fn create_environment(location: Location, commands: &mut Commands) {
+    let (environment_colliders, teleporters) = get_environment_collider_and_teleporters(location);
+
+    for collider in &environment_colliders {
+        add_environment_collider(commands, collider);
+    }
+
+    for (teleporter, destination) in &teleporters {
+        add_teleporter(commands, teleporter, *destination);
+    }
+}
+
+fn get_environment_collider_and_teleporters(
+    location: Location,
+) -> (
+    Vec<EnvironmentCollider>,
+    Vec<(EnvironmentCollider, Location)>,
+) {
+    match location {
+        Location::Home => {
+            let environment_colliders = vec![
+                EnvironmentCollider::new(0, 0, 11, 4),
+                EnvironmentCollider::new(10, 0, 9, 1),
+                EnvironmentCollider::new(15, 1, 4, 4),
+                EnvironmentCollider::new(19, 1, 1, 19),
+                EnvironmentCollider::new(0, 4, 3, 5),
+                EnvironmentCollider::new(3, 4, 3, 1),
+                EnvironmentCollider::new(6, 4, 1, 5),
+            ];
+            let teleporters = vec![(EnvironmentCollider::new(1, 19, 3, 1), Location::Park)];
+
+            (environment_colliders, teleporters)
+        }
+        Location::Park => {
+            let environment_colliders = vec![EnvironmentCollider::new(0, 0, 11, 4)];
+            let teleporters = vec![(EnvironmentCollider::new(1, 19, 3, 1), Location::Park)];
+
+            (environment_colliders, teleporters)
+        }
+        Location::Supermarket => todo!(),
+    }
+}
+
+#[derive(Component, Debug, Clone)]
 struct EnvironmentCollider {
     x_coordinates: usize,
     y_coordinates: usize,
@@ -75,20 +105,28 @@ impl EnvironmentCollider {
     }
 }
 
-fn add_collider(commands: &mut Commands, collider: &EnvironmentCollider) {
-    let (x_pos, y_pos) = (collider.x_coordinates, collider.y_coordinates);
-    let (width, height) = (collider.width as f32, collider.height as f32);
+fn add_environment_collider(commands: &mut Commands, environment_collider: &EnvironmentCollider) {
+    let (x_pos, y_pos) = (
+        environment_collider.x_coordinates,
+        environment_collider.y_coordinates,
+    );
+    let (width, height) = (
+        environment_collider.width as f32,
+        environment_collider.height as f32,
+    );
 
     let collider_x = (-SCREEN_WIDTH / 2.) + (x_pos as f32 * TILE_SIZE) + ((width * TILE_SIZE) / 2.);
     let collider_y =
         (SCREEN_HEIGHT / 2.) - 30. - (y_pos as f32 * TILE_SIZE) - ((height * TILE_SIZE) / 2.);
 
     println!("COLLIDER: x pos: {:?}, y pos {:?}", collider_x, collider_y);
-    commands.spawn_bundle(ColliderBundle {
-        position: [collider_x / TILE_SIZE, collider_y / TILE_SIZE].into(),
-        shape: ColliderShape::cuboid(width as f32 / 2., height as f32 / 2.).into(),
-        ..Default::default()
-    });
+    commands
+        .spawn_bundle(ColliderBundle {
+            position: [collider_x / TILE_SIZE, collider_y / TILE_SIZE].into(),
+            shape: ColliderShape::cuboid(width as f32 / 2., height as f32 / 2.).into(),
+            ..Default::default()
+        })
+        .insert(environment_collider.clone());
 }
 
 fn add_teleporter(commands: &mut Commands, collider: &EnvironmentCollider, destination: Location) {

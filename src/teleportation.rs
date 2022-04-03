@@ -1,5 +1,5 @@
 use crate::environment::Environment;
-use bevy::prelude::*;
+use bevy::{ecs::system::Command, prelude::*};
 use bevy_rapier2d::prelude::*;
 
 use crate::{environment::Location, player::Player};
@@ -16,6 +16,7 @@ impl Teleporter {
 }
 
 pub fn teleportation_system(
+    mut commands: Commands,
     narrow_phase: Res<NarrowPhase>,
     mut player_info: Query<(Entity, &mut RigidBodyPositionComponent), With<Player>>,
     teleporter_query: Query<&Teleporter>,

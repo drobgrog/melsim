@@ -36,7 +36,9 @@ pub fn player_movement(
     }
 }
 
-pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup_player(mut commands: Commands, 
+    asset_server: Res<AssetServer>
+) {
     let sprite_size_x = 100.0;
     let sprite_size_y = 150.0;
 
