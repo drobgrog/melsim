@@ -79,7 +79,6 @@ pub fn logic(mut commands: Commands, mut state: ResMut<GameState>, time: Res<Tim
 
             // Containing box
             let ct_box_height = sender_font_size + line_spacing + (laid_out_message.len() as f32 * (line_spacing + message_font_size));
-            println!("c_b_h = sfs + ls + (#line * (spc + msg_f_s)) = {} + {} ({} * ({} + {})) = {}", sender_font_size, line_spacing, laid_out_message.len(), line_spacing, message_font_size, ct_box_height);
 
             let mut ety = commands.spawn_bundle(
                 SpriteBundle{
