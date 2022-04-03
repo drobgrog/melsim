@@ -35,7 +35,7 @@ pub fn make_main_narrative() -> Vec<NarrativeEvent> {
         NarrativeEvent{
             starts_act: true,
             criterion: NarrativeCriterion::ElapsedRel(1.5),
-            action: send_text(
+            action: action().send_text(
                 "Dictator DAN",
                 "Fellow Victorians!|We must do what must be done.|STAY INDOORS. BY ORDER OF THE GOVERNMENT, THAT IS, ME",
             ),
@@ -43,20 +43,20 @@ pub fn make_main_narrative() -> Vec<NarrativeEvent> {
         NarrativeEvent{
             starts_act: false,
             criterion: NarrativeCriterion::ElapsedRel(1.5),
-            action: change_sanity(3),
+            action: action().change_sanity(3),
         },
         NarrativeEvent{
             starts_act: false,
             criterion: NarrativeCriterion::ElapsedRel(3.5),
-            action: send_text(
+            action: action().send_text(
                 "Mum",
                 "Hello dearie|Just sent you a little something in the mail. Hope you're well. xoxox|Mum",
-            ),
+            ).change_sanity(9),
         },
         NarrativeEvent{
             starts_act: false,
             criterion: NarrativeCriterion::ElapsedRel(2.5),
-            action: spawn_pickup(
+            action: action().spawn_pickup(
                 pickup::Pickup::Potplant,
                 (5, 5)
             ),
@@ -68,37 +68,35 @@ pub fn make_covid_narrative() -> Vec<NarrativeEvent> {
     vec![]
 }
 
-// helper constructors
-fn send_text(sender: &str, body: &str) -> NarrativeActions {
+fn action() -> NarrativeActions {
     NarrativeActions{
-        send_texts: vec![
+        ..Default::default()
+    }
+}
+
+impl NarrativeActions {
+    fn send_text(mut self, sender: &str, body: &str) -> Self {
+        self.send_texts.push(
             NarrativeTextMessage{
                 sender: String::from(sender),
                 body: String::from(body),
             }
-        ],
-        change_sanity: None,
-        spawn_item: vec![],
+        );
+        self
     }
-}
 
-fn change_sanity(by: i32) -> NarrativeActions {
-    NarrativeActions{
-        send_texts: Vec::new(),
-        change_sanity: Some(by),
-        spawn_item: vec![],
+    fn change_sanity(mut self, by: i32) -> Self {
+        self.change_sanity = Some(by);
+        self
     }
-}
 
-fn spawn_pickup(what: pickup::Pickup, at: (usize, usize)) -> NarrativeActions {
-    NarrativeActions{
-        send_texts: Vec::new(),
-        change_sanity: None,
-        spawn_item: vec![
+    fn spawn_pickup(mut self, what: pickup::Pickup, at: (usize, usize)) -> Self {
+        self.spawn_item.push(
             SpawnablePickup{
                 prototype: what,
                 location: at,
             }
-        ],
+        );
+        self
     }
 }
