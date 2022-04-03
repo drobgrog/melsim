@@ -10,7 +10,6 @@ pub struct GameState {
     pub text_msg_parent: Option<Entity>,
     pub date: i32,
     pub last_date: i32,
-    last_msg_date: i32,
     pub last_msg_animation_time: f64,
 
     // Sanity related information
@@ -101,27 +100,6 @@ pub fn logic(
         &asset_server,
         &player,
     );
-
-    if state.last_msg_date != state.date {
-        if state.date % 2 == 1 {
-            state.add_text_message(
-                "DROBGob Pathology",
-                "test",
-                &time,
-                &mut commands,
-                &asset_server,
-            );
-        } else {
-            state.add_text_message(
-                "DROBGob Pathology",
-                "Swab collection date: 3/3/2020|Result: Covid-19 virus NEGATIVE|Tele-consult your doctor for advice applicable to your particular circumstances",
-                &time,
-                &mut commands,
-                &asset_server,
-            );
-        }
-
-    }
 }
 
 // How often should we lose (/gain) sanity just for existing?
@@ -145,7 +123,6 @@ impl GameState {
         });
         self.last_msg_animation_time = time.seconds_since_startup();
 
-        self.last_msg_date = self.date;
         // Trigger a full rebuild -- delete everything else
         for x in &mut self.messages {
             if let Some(ety) = x.e {
@@ -290,6 +267,7 @@ impl GameState {
             if self.criterion_met(&self.main_narrative[self.next_narrative_id].criterion, time) {
                 self.do_narrative_actions(
                     self.main_narrative[self.next_narrative_id].action.clone(),
+                    time,
                     commands,
                     asset_server,
                     player,
@@ -312,6 +290,7 @@ impl GameState {
 
     fn do_narrative_actions(&mut self,
         a: NarrativeActions,
+        time: &Res<Time>,
         commands: &mut Commands,
         asset_server: &Res<AssetServer>,
         player: &Query<(&Player, &Transform)>
@@ -323,7 +302,13 @@ impl GameState {
         }
 
         for m in a.send_texts {
-
+            self.add_text_message(
+                &m.sender,
+                &m.body,
+                time,
+                commands,
+                asset_server,
+            );
         }
     }
 }
