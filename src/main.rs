@@ -30,8 +30,10 @@ fn main() {
         .add_startup_system_to_stage(StartupStage::PreStartup, pre_startup)
         .add_startup_system(setup_player)
         .add_startup_system(setup_environment)
+        .add_startup_system(game::setup_state)
         .add_system(player_movement)
         .add_system(ui::update)
+        .add_system(ui::update_mental_health_bar_covering)
         .add_system(game::logic)
         // .add_plugin(RapierRenderPlugin) // un-comment for a debug view of colliders
         .run();
