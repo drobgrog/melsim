@@ -74,7 +74,7 @@ pub fn spawn_sanity_number(
     });
 }
 
-pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, state: Res<GameState>) {
     commands.spawn_bundle(UiCameraBundle::default());
     // The bundle holding the status bar i.e. the date
     commands
@@ -172,14 +172,19 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 
     // The white zone covering the bar. Don't ask.
+    let desired_width = mhb_bar_filling_width() * ( (100 - state.sanity) as f32 / 100.);
     commands.spawn_bundle(SpriteBundle{
         transform: Transform {
-            translation: [(-SCREEN_WIDTH / 2.) + (mhb_bar_filling_width() / 2.) + mhb_bar_offset, mhb_ypos-1., 12.].into(),
+            translation: [
+                    (-SCREEN_WIDTH / 2.) + (mhb_bar_filling_width()) + 210. - (desired_width/2.),
+                    mhb_ypos-1.,
+                    12.
+                ].into(),
             ..Default::default()
         },
         sprite: Sprite{
             color: Color::rgb(1., 1., 1.),
-            custom_size: Some(Vec2::new(mhb_bar_filling_width() / 2., mhb_bar_filling_height())),
+            custom_size: Some(Vec2::new(desired_width, mhb_bar_filling_height())),
             ..Default::default()
         },
         ..Default::default()
@@ -268,14 +273,35 @@ pub fn update(mut query: Query<(&mut Text, &DateTag)>, state: Res<GameState>) {
     }
 }
 
-pub fn update_sanity_bar_covering(mut query: Query<(&mut Sprite, &mut Transform, &SanityCoveringTag)>, state: Res<GameState>) {
+pub fn update_sanity_bar_covering(mut query: Query<(&mut Sprite, &mut Transform, &SanityCoveringTag)>, state: Res<GameState>, time: Res<Time>) {
     let (mut sprite, mut tx, _) = query.single_mut();
 
-    let width = mhb_bar_filling_width() * ( (100 - state.sanity) as f32 / 100.);
+    let old_width = match sprite.custom_size {
+        Some(v) => v.x,
+        None    => panic!("??"),
+    };
+    let desired_width = mhb_bar_filling_width() * ( (100 - state.sanity) as f32 / 100.);
 
-    sprite.custom_size = Some(Vec2::new(width, mhb_bar_filling_height()));
+    // animate between old and new width
+    // this is an semi-elastic algorithm design to go faster the further we are from the true value
+    let speed = 3. * if desired_width > old_width {
+        f32::ceil(desired_width - old_width)
+    } else {
+        -f32::ceil(old_width - desired_width)
+    };
+    let mut new_width = old_width + speed*time.delta_seconds();
+    // if the correction overshoots, clamp it
+    if old_width > desired_width {
+        // we're falling, so make sure we're not too *low*
+        new_width = f32::max(new_width, desired_width);
+    } else {
+        // opposite logic
+        new_width = f32::min(new_width, desired_width);
+    }
+
+    sprite.custom_size = Some(Vec2::new(new_width, mhb_bar_filling_height()));
     tx.translation = [
-        (-SCREEN_WIDTH / 2.) + (mhb_bar_filling_width()) + 210. - (width/2.),
+        (-SCREEN_WIDTH / 2.) + (mhb_bar_filling_width()) + 210. - (new_width/2.),
         tx.translation.y,
         tx.translation.z,
     ].into();
