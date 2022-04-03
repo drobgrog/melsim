@@ -9,15 +9,28 @@ pub enum Location {
     Supermarket,
 }
 
+#[derive(Debug, Clone, Component)]
+struct Environment {
+    location: Location,
+}
+
+impl Environment {
+    fn new(location: Location) -> Self {
+        Self { location }
+    }
+}
+
 pub fn setup_environment(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(SpriteBundle {
-        texture: asset_server.load("environment.png"),
-        transform: Transform {
-            translation: [-150., -30., 0.].into(),
+    commands
+        .spawn_bundle(SpriteBundle {
+            texture: asset_server.load("home.png"),
+            transform: Transform {
+                translation: [-150., -30., 0.].into(),
+                ..Default::default()
+            },
             ..Default::default()
-        },
-        ..Default::default()
-    });
+        })
+        .insert(Environment::new(Location::Home));
 
     let environment_colliders = vec![
         EnvironmentCollider::new(0, 0, 11, 4),

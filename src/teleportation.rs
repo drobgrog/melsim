@@ -19,7 +19,7 @@ pub fn teleportation_system(
     mut player_info: Query<(Entity, &mut RigidBodyPositionComponent), With<Player>>,
     teleporter_query: Query<&Teleporter>,
 ) {
-    let (player_entity, player_position) = player_info.single_mut();
+    let (player_entity, mut player_position) = player_info.single_mut();
 
     // For each teleporter ask - has the player collided with us?
     for (teleporter_collider, _, intersecting) in
@@ -27,10 +27,8 @@ pub fn teleportation_system(
     {
         if intersecting {
             let teleporter = teleporter_query.get(teleporter_collider.entity()).unwrap();
-            println!(
-                "Player is {:?} intersecting with a teleporter: {:?}",
-                player_entity, teleporter
-            );
+            println!("TELEPORTING TO {:?}", teleporter.destination);
+            player_position.position.translation = [3.0, 5.0].into();
         }
     }
 }
