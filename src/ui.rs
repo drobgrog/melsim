@@ -232,7 +232,12 @@ pub fn update_covid_risk(mut query: Query<(&CovidRiskElement, &mut Visibility, &
             t.scale.x = tween_time;
             t.scale.y = tween_time;
         } else {
-            v.is_visible = false;
+            if tween_time > 0.99 {
+                v.is_visible = false;
+            } else {
+                t.scale.x = 1. - tween_time;
+                t.scale.y = 1. - tween_time;
+            }
         }
     }
 }
