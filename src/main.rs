@@ -4,6 +4,7 @@ mod game;
 mod player;
 pub mod teleportation;
 mod ui;
+pub mod pickup;
 use crate::covid::covid_system;
 use bevy::prelude::*;
 use bevy_rapier2d::physics::{NoUserData, RapierConfiguration, RapierPhysicsPlugin};
