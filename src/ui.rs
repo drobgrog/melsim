@@ -43,52 +43,24 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     // The x position -- remember we translate the *centre* of the quad, so 1/3rd (not 1/6th) is
     // right
     let xpos = 0. + (super::win_width()/3.);
+    // this is white underneath
     commands.spawn_bundle(SpriteBundle{
-        texture: asset_server.load("ui/phone.png"),
+        texture: asset_server.load("ui/white_bg.png"),
         transform: Transform {
             translation: [xpos, 0., 10.].into(),
             ..Default::default()
         },
         ..Default::default()
     });
-    /*
-    commands.spawn_bundle(NodeBundle {
-            style: Style {
-                size: Size::new(Val::Percent(30.0), Val::Percent(100.0)),
-                position: Rect{ top: Val::Percent(0.), bottom: Val::Percent(0.), right: Val::Percent(100.), left: Val::Percent(70.) },
-                position_type: PositionType::Absolute,
-                justify_content: JustifyContent::SpaceBetween,
-                ..Default::default()
-            },
-            color: Color::NONE.into(),
+    // and the phone texture
+    commands.spawn_bundle(SpriteBundle{
+        texture: asset_server.load("ui/phone.png"),
+        transform: Transform {
+            translation: [xpos, 0., 30.].into(),
             ..Default::default()
-        }).with_children(|parent| {
-            // the RHS background
-            parent
-                .spawn_bundle(NodeBundle {
-                    style: Style {
-                        size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                        border: Rect::all(Val::Percent(2.0)),
-                        ..Default::default()
-                    },
-                    color: Color::rgb(0.99, 0.65, 0.65).into(),
-                    ..Default::default()
-                }).with_children(|parent| {
-                    state.text_msg_parent = Some(parent
-                        .spawn_bundle(NodeBundle {
-                            style: Style {
-                                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                                flex_direction: FlexDirection::Column,
-                                //flex_wrap: FlexWrap::Wrap,
-                                ..Default::default()
-                            },
-                            color: Color::rgb(0.65, 0.90, 0.65).into(),
-                            ..Default::default()
-                        }).id());
-                });
-            })
-        ;
-        */
+        },
+        ..Default::default()
+    });
 }
 
 // Returns vector of lines
