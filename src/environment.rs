@@ -1,6 +1,10 @@
 use crate::{npc::spawn_npc, teleportation::Teleporter, SCREEN_HEIGHT, SCREEN_WIDTH, TILE_SIZE};
+use crate::{
+    pickup::{spawn_pickup, Pickup},
+    teleportation::add_teleporter,
+};
 use bevy::prelude::*;
-use bevy_rapier2d::{na::Translation2, prelude::*};
+use bevy_rapier2d::prelude::*;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Location {
@@ -43,6 +47,7 @@ pub fn setup_environment(
     create_environment(Location::Home, &mut commands);
 
     spawn_npc(&mut commands, &asset_server);
+    spawn_pickup(Pickup::Potplant, [10, 13], &mut commands, &asset_server);
 }
 
 pub fn create_environment(location: Location, commands: &mut Commands) {
@@ -147,42 +152,4 @@ pub fn tile_coords_to_screen_pos(
     let collider_y =
         (SCREEN_HEIGHT / 2.) - 30. - (y_pos as f32 * TILE_SIZE) - ((height * TILE_SIZE) / 2.);
     (collider_x, collider_y)
-}
-
-fn add_teleporter(
-    commands: &mut Commands,
-    environment_collider: &EnvironmentCollider,
-    teleporter: Teleporter,
-) {
-    let (x_pos, y_pos) = (
-        environment_collider.x_coordinates,
-        environment_collider.y_coordinates,
-    );
-    let (width, height) = (
-        environment_collider.width as f32,
-        environment_collider.height as f32,
-    );
-
-    let (collider_x, collider_y) = tile_coords_to_screen_pos(x_pos, width, y_pos, height);
-
-    let collider_flags = ColliderFlags {
-        active_events: ActiveEvents::all(),
-        ..Default::default()
-    }
-    .into();
-
-    println!(
-        "TELEPORTER: x pos: {:?}, y pos {:?}",
-        collider_x, collider_y
-    );
-    commands
-        .spawn_bundle(ColliderBundle {
-            flags: collider_flags,
-            collider_type: ColliderType::Sensor.into(),
-            position: [collider_x / TILE_SIZE, collider_y / TILE_SIZE].into(),
-            shape: ColliderShape::cuboid(width as f32 / 2., height as f32 / 2.).into(),
-            ..Default::default()
-        })
-        .insert(teleporter)
-        .insert(environment_collider.clone());
 }
