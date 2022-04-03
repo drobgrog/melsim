@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::player_physics::Player;
+use crate::player::Player;
 
 #[derive(Debug, Clone, Component)]
 pub struct Person {}
