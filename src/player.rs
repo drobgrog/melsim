@@ -4,6 +4,9 @@ use bevy_rapier2d::rapier::na::Vector2;
 
 use crate::TILE_SIZE;
 
+pub static SPRITE_SIZE_X: f32 = 100.0;
+pub static SPRITE_SIZE_Y: f32 = 150.0;
+
 #[derive(Component)]
 pub struct Player {
     pub speed: f32,
@@ -37,14 +40,11 @@ pub fn player_movement(
 }
 
 pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let sprite_size_x = 100.0;
-    let sprite_size_y = 150.0;
-
-    println!("Sprite size: x: {:?} y: {:?}", sprite_size_x, sprite_size_y);
+    println!("Sprite size: x: {:?} y: {:?}", SPRITE_SIZE_X, SPRITE_SIZE_Y);
 
     // Set the size of the collider
-    let collider_size_x = (sprite_size_x / TILE_SIZE) / 2.;
-    let collider_size_y = (sprite_size_y / TILE_SIZE) / 2.;
+    let collider_size_x = (SPRITE_SIZE_X / TILE_SIZE) / 2.;
+    let collider_size_y = (SPRITE_SIZE_Y / TILE_SIZE) / 2.;
 
     println!(
         "Collider size: x: {:?} y: {:?}",
