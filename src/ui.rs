@@ -4,13 +4,13 @@ use crate::game::*;
 #[derive(Component)]
 pub struct DateTag {}
 
-pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, mut state: ResMut<GameState>) {
     commands.spawn_bundle(UiCameraBundle::default());
     // The bundle holding the status bar i.e. the date
     commands.spawn_bundle(
         NodeBundle{
             style: Style {
-                size: Size::new(Val::Percent(70.), Val::Px(30.)),
+                size: Size::new(Val::Percent(100.), Val::Px(30.)),
                 position: Rect{ top: Val::Percent(0.), ..Default::default() },
                 position_type: PositionType::Absolute,
                 ..Default::default()
@@ -40,6 +40,18 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
         })
     ;
     // The bundle holding the RHS 30% of the display
+    // The x position -- remember we translate the *centre* of the quad, so 1/3rd (not 1/6th) is
+    // right
+    let xpos = 0. + (super::win_width()/3.);
+    commands.spawn_bundle(SpriteBundle{
+        texture: asset_server.load("ui/phone.png"),
+        transform: Transform {
+            translation: [xpos, 0., 10.].into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    });
+    /*
     commands.spawn_bundle(NodeBundle {
             style: Style {
                 size: Size::new(Val::Percent(30.0), Val::Percent(100.0)),
@@ -62,18 +74,55 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                     color: Color::rgb(0.99, 0.65, 0.65).into(),
                     ..Default::default()
                 }).with_children(|parent| {
-                    parent
+                    state.text_msg_parent = Some(parent
                         .spawn_bundle(NodeBundle {
                             style: Style {
                                 size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                                flex_direction: FlexDirection::Column,
+                                //flex_wrap: FlexWrap::Wrap,
                                 ..Default::default()
                             },
                             color: Color::rgb(0.65, 0.90, 0.65).into(),
                             ..Default::default()
-                        });
+                        }).id());
                 });
             })
         ;
+        */
+}
+
+// Returns vector of lines
+pub fn lay_out_text_monofonto(point_size: f32, width_px: f32, text: &String) -> Vec<String> {
+    let mut last_word = 0;
+    let mut start_of_line = 0;
+    let mut rv: Vec<String> = vec![];
+    for (i, c) in text.chars().enumerate() {
+        if c == '|' {
+            // forced line break
+            rv.push(String::from(&text[start_of_line..i]));
+            start_of_line = i + 1;
+            last_word = start_of_line;
+        } else if c == ' ' {
+            // here we need to update the 'last word' situation
+            last_word = i + 1;
+        } else {
+            // TODO: this breaks if start_of_line==last_word, i.e., a word is too long to fit in a
+            // single line. Text and fix
+            if estimate_width(point_size, 1 + i - start_of_line) > width_px {
+                rv.push(String::from(&text[start_of_line..last_word]));
+                start_of_line = last_word;
+            }
+        }
+    }
+    // copy the last line, if any
+    if start_of_line < text.len() {
+        rv.push(String::from(&text[start_of_line..]));
+    }
+    return rv;
+}
+
+fn estimate_width(point_size: f32, chars: usize) -> f32 {
+    return 0.4417 * point_size * (chars as f32);
 }
 
 pub fn update(mut query: Query<(&mut Text, &DateTag)>, state: Res<GameState>) {
