@@ -16,11 +16,6 @@ struct TextMessage {
     e: Option<Entity>,
 }
 
-#[derive(Component)]
-struct TextMessagePosition {
-    pub bottom: f32,
-}
-
 pub fn logic(mut commands: Commands, mut state: ResMut<GameState>, time: Res<Time>,
 
         asset_server: Res<AssetServer>,
@@ -130,52 +125,13 @@ pub fn logic(mut commands: Commands, mut state: ResMut<GameState>, time: Res<Tim
                         ..Default::default()
                     }
                 );
-                inside_bottom += sender_font_size + line_spacing;
+                // Don't need this calculation but included for if we add things
+                //inside_bottom += sender_font_size + line_spacing;
             });
 
             x.e = Some(ety.id());
             bottom += ct_box_height + inter_message_spacing;
         }
-        /*
-        let mut e: Option<Entity> = None;
-        commands.entity(state.text_msg_parent.unwrap())
-            .with_children(|parent| {
-                for x in &state.messages {
-                    let e = Some(parent.spawn_bundle(
-                        NodeBundle {
-                            style: Style {
-                                size: Size::new(Val::Percent(100.0), Val::Percent(20.0)),
-                                border: Rect::all(Val::Percent(3.)),
-                                ..Default::default()
-                            },
-                            color: Color::NONE.into(),
-                            ..Default::default()
-                        }
-                    ).with_children(|parent| {
-                        parent.spawn_bundle(
-                            TextBundle {
-                                style: Style {
-                                    size: Size::new(Val::Px(1324.*0.25), Default::default()),
-                                    ..Default::default()
-                                },
-                                text: Text::with_section(
-                                    format!("penis {} this is some really long text to see if we can get wrapping to occur and if so see what happens and what all the situations are for the purposes of caluclating things. but ahhh allt hings considered i'm not amazingly pelased with this whole situation. Stupid covid", state.date),
-                                    TextStyle {
-                                        font: asset_server.load("fonts/monofonto.ttf"),
-                                        font_size: 16.,
-                                        color: Color::rgb(1., 0., 0.),
-                                    },
-                                    TextAlignment {
-                                        vertical: VerticalAlign::Center,
-                                        horizontal: HorizontalAlign::Left,
-                                    }
-                                ),
-                                ..Default::default()
-                        });
-                    }).id());
-                }
-            });
-    */
     }
 }
 

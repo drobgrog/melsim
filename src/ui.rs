@@ -4,7 +4,7 @@ use crate::game::*;
 #[derive(Component)]
 pub struct DateTag {}
 
-pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, mut state: ResMut<GameState>) {
+pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(UiCameraBundle::default());
     // The bundle holding the status bar i.e. the date
     commands.spawn_bundle(
