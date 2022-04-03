@@ -1,5 +1,6 @@
 use crate::{ui, SCREEN_HEIGHT, SCREEN_WIDTH};
 use bevy::prelude::*;
+use crate::player::Player;
 
 #[derive(Default)]
 pub struct GameState {
@@ -30,9 +31,12 @@ struct TextMessage {
 }
 
 pub fn debug_keys(
+    commands: Commands,
     key: Res<Input<KeyCode>>,
     mut state: ResMut<GameState>,
     time: Res<Time>,
+    asset_server: Res<AssetServer>,
+    player: Query<(&Player, &Transform)>,
 ) {
     if key.just_pressed(KeyCode::C) {
         state.show_covid_risk = !state.show_covid_risk;
@@ -43,6 +47,10 @@ pub fn debug_keys(
     }
     if key.just_pressed(KeyCode::B) {
         state.covid_risk -= 0.1;
+    }
+    if key.just_pressed(KeyCode::P) {
+        let (_, player_tx) = player.single();
+        ui::spawn_mental_health_number(commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
     }
 }
 

@@ -17,9 +17,46 @@ pub struct CovidRiskElement {
 }
 
 #[derive(Component)]
+pub struct MentalHealthNumberTween {
+    total_time: f32,
+    time_left: f32,
+    base_x: f32,
+    base_y: f32,
+}
+
+#[derive(Component)]
 pub struct TextMessageTag {
     pub bottom_from: f32,
     pub bottom_to: f32,
+}
+
+pub fn spawn_mental_health_number(
+    mut commands: Commands,
+    font: Handle<Font>,
+    player_location: Vec3, // Vec3 so we can pass a translation directly
+) {
+    let text_style = TextStyle{
+        font: font,
+        font_size: 26.,
+        color: Color::rgba(1., 0., 0., 1.),
+    };
+    let align = TextAlignment{
+        vertical: VerticalAlign::Center,
+        horizontal: HorizontalAlign::Left,
+    };
+    commands.spawn_bundle(Text2dBundle{
+        text: Text::with_section(String::from("+123"), text_style, align),
+        transform: Transform {
+            translation: player_location,
+            ..Default::default()
+        },
+        ..Default::default()
+    }).insert(MentalHealthNumberTween{
+        total_time: 1.2,
+        time_left: 1.2,
+        base_x: player_location.x,
+        base_y: player_location.y,
+    });
 }
 
 pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, mut state: ResMut<GameState>) {
@@ -257,6 +294,27 @@ pub fn text_message_animator(mut query: Query<(&TextMessageTag, &mut Transform)>
     }
 }
 
+pub fn mental_health_number_tween(mut commands: Commands, mut query: Query<(&mut MentalHealthNumberTween, &mut Transform, &mut Text, Entity)>, time: Res<Time>) {
+    let dt = time.delta_seconds();
+    for (mut mhn, mut t, mut txt, ety) in query.iter_mut() {
+        mhn.time_left -= dt;
+        if mhn.time_left < 0. {
+            commands.entity(ety).despawn();
+        } else {
+            let tween_time = (mhn.total_time - mhn.time_left)/mhn.total_time;
+            let eased_tween_time = ease_in_back(tween_time);
+
+            t.translation.y = mhn.base_y - 90.*eased_tween_time;
+            t.translation.x = mhn.base_x + 30.*tween_time;
+
+            if tween_time > 0.5 {
+                let opacity = (tween_time * 2.) - 1.;
+                txt.sections[0].style.color = Color::rgba(1., 0., 0., 1. - opacity);
+            }
+        }
+    }
+}
+
 // see: https://easings.net/#easeInOutCirc
 fn ease_in_out_circ(x: f32) -> f32 {
     return if x < 0.5 {
@@ -264,6 +322,14 @@ fn ease_in_out_circ(x: f32) -> f32 {
     } else {
       (f32::sqrt(1. - f32::powf(-2. * x + 2., 2.)) + 1.) / 2.
     }
+}
+
+// see: https://easings.net/#easeInBack
+fn ease_in_back(x: f32) -> f32 {
+    let c1 = 1.70158;
+    let c3 = c1 + 1.;
+
+    return c3 * x * x * x - c1 * x * x;
 }
 
 fn march_2020_dow(day: i32) -> &'static str {
