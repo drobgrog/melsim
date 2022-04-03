@@ -7,13 +7,20 @@ pub struct GameState {
     // Option<...> for the Default trait
     pub text_msg_parent: Option<Entity>,
     pub date: i32,
+    pub last_date: i32,
     last_msg_date: i32,
+    pub last_msg_animation_time: f64,
 
     pub mental_health: f32,
+    pub mh_loss_factor: f32,
 
     // UI stuff
     pub mhb_the_bar: Option<Entity>,
     pub mhb_bar_covering: Option<Entity>,
+
+    pub show_covid_risk: bool,
+    pub covid_risk: f32,
+    pub last_covid_risk_shown: f64,
 }
 
 struct TextMessage {
@@ -22,8 +29,28 @@ struct TextMessage {
     e: Option<Entity>,
 }
 
+pub fn debug_keys(
+    key: Res<Input<KeyCode>>,
+    mut state: ResMut<GameState>,
+    time: Res<Time>,
+) {
+    if key.just_pressed(KeyCode::C) {
+        state.show_covid_risk = !state.show_covid_risk;
+        state.last_covid_risk_shown  = time.seconds_since_startup();
+    }
+    if key.just_pressed(KeyCode::V) {
+        state.covid_risk += 0.1;
+    }
+    if key.just_pressed(KeyCode::B) {
+        state.covid_risk -= 0.1;
+    }
+}
+
 pub fn setup_state(mut state: ResMut<GameState>) {
     state.mental_health = 0.75;
+    state.mh_loss_factor = 0.002;
+
+    state.covid_risk = 0.5;
 
     // `date` handled automatically by `logic`
 }
@@ -32,20 +59,24 @@ pub fn logic(
     mut commands: Commands,
     mut state: ResMut<GameState>,
     time: Res<Time>,
-
     asset_server: Res<AssetServer>,
 ) {
     state.date = 1 + (time.seconds_since_startup() / 5.) as i32;
+    if state.last_date < state.date {
+        state.last_date = state.date;
+        state.new_day();
+    }
 
-    state.mental_health *= 0.999;
+    state.update_mental_health(time.delta_seconds());
 
     if state.last_msg_date != state.date {
         if state.date % 2 == 1 {
-            state.add_text_message("DROBGob Pathology", "test");
+            state.add_text_message("DROBGob Pathology", "test", time.seconds_since_startup());
         } else {
             state.add_text_message(
                 "DROBGob Pathology",
                 "Swab collection date: 3/3/2020|Result: Covid-19 virus NEGATIVE|Tele-consult your doctor for advice applicable to your particular circumstances",
+                time.seconds_since_startup()
             );
         }
 
@@ -66,12 +97,12 @@ pub fn logic(
         let text_style_sender = TextStyle {
             font: asset_server.load("fonts/monofonto.ttf"),
             font_size: sender_font_size,
-            color: Color::rgb(1., 0., 0.),
+            color: Color::rgba(1., 0., 0., 1.),
         };
         let text_style_message = TextStyle {
             font: asset_server.load("fonts/monofonto.ttf"),
             font_size: message_font_size,
-            color: Color::rgb(1., 0., 0.),
+            color: Color::rgba(1., 0., 0., 1.),
         };
         let align = TextAlignment {
             vertical: VerticalAlign::Center,
@@ -86,6 +117,7 @@ pub fn logic(
         // This is the "physical bottom", i.e., if we had a one pixel object, we'd position it here
         // in order to get it in the right place
         let mut bottom = (-SCREEN_HEIGHT / 2.) + 190.;
+        let mut height_of_first = 0.;
 
         for x in &mut state.messages.iter_mut().rev() {
             let laid_out_message =
@@ -96,6 +128,11 @@ pub fn logic(
                 + line_spacing
                 + (laid_out_message.len() as f32 * (line_spacing + message_font_size));
 
+            if height_of_first == 0. {
+                height_of_first = ct_box_height + inter_message_spacing;
+            }
+
+            let ctr_bottom = bottom + ct_box_height / 2.;
             let mut ety = commands.spawn_bundle(SpriteBundle {
                 sprite: Sprite {
                     color: Color::rgb(0.8, 1.0, 0.8),
@@ -103,10 +140,14 @@ pub fn logic(
                     ..Default::default()
                 },
                 transform: Transform {
-                    translation: Vec3::new(msg_xpos, bottom + ct_box_height / 2., 11.),
+                    translation: Vec3::new(msg_xpos, ctr_bottom - height_of_first, 11.),
                     ..Default::default()
                 },
                 ..Default::default()
+            });
+            ety.insert(ui::TextMessageTag{
+                bottom_from: ctr_bottom - height_of_first,
+                bottom_to: ctr_bottom,
             });
 
             ety.with_children(|parent| {
@@ -141,7 +182,9 @@ pub fn logic(
             x.e = Some(ety.id());
             bottom += ct_box_height + inter_message_spacing;
 
-            if bottom > SCREEN_HEIGHT / 2. {
+            // could be S_H / 2, but we need to be a bit careful here because we over display. So
+            // just go whole hog and don't divide by 2
+            if bottom > SCREEN_HEIGHT / 1. {
                 // don't need to render any more
                 break;
             }
@@ -150,11 +193,22 @@ pub fn logic(
 }
 
 impl GameState {
-    fn add_text_message(&mut self, sender: &str, msg: &str) {
+    fn add_text_message(&mut self, sender: &str, msg: &str, time: f64) {
         self.messages.push(TextMessage {
             sender: String::from(sender),
             text: String::from(msg),
             e: None,
         });
+        self.last_msg_animation_time = time;
+    }
+
+    fn new_day(&mut self) {
+        if self.date % 2 == 0 {
+            self.mh_loss_factor *= 1.05;
+        }
+    }
+
+    fn update_mental_health(&mut self, dt: f32) {
+        self.mental_health -= self.mh_loss_factor * dt;
     }
 }
