@@ -10,7 +10,7 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(
         NodeBundle{
             style: Style {
-                size: Size::new(Val::Percent(70.), Val::Px(30.)),
+                size: Size::new(Val::Percent(100.), Val::Px(30.)),
                 position: Rect{ top: Val::Percent(0.), ..Default::default() },
                 position_type: PositionType::Absolute,
                 ..Default::default()
@@ -40,40 +40,61 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
         })
     ;
     // The bundle holding the RHS 30% of the display
-    commands.spawn_bundle(NodeBundle {
-            style: Style {
-                size: Size::new(Val::Percent(30.0), Val::Percent(100.0)),
-                position: Rect{ top: Val::Percent(0.), bottom: Val::Percent(0.), right: Val::Percent(100.), left: Val::Percent(70.) },
-                position_type: PositionType::Absolute,
-                justify_content: JustifyContent::SpaceBetween,
-                ..Default::default()
-            },
-            color: Color::NONE.into(),
+    // The x position -- remember we translate the *centre* of the quad, so 1/3rd (not 1/6th) is
+    // right
+    let xpos = 0. + (super::win_width()/3.);
+    // this is white underneath
+    commands.spawn_bundle(SpriteBundle{
+        texture: asset_server.load("ui/white_bg.png"),
+        transform: Transform {
+            translation: [xpos, 0., 10.].into(),
             ..Default::default()
-        }).with_children(|parent| {
-            // the RHS background
-            parent
-                .spawn_bundle(NodeBundle {
-                    style: Style {
-                        size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                        border: Rect::all(Val::Percent(2.0)),
-                        ..Default::default()
-                    },
-                    color: Color::rgb(0.99, 0.65, 0.65).into(),
-                    ..Default::default()
-                }).with_children(|parent| {
-                    parent
-                        .spawn_bundle(NodeBundle {
-                            style: Style {
-                                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                                ..Default::default()
-                            },
-                            color: Color::rgb(0.65, 0.90, 0.65).into(),
-                            ..Default::default()
-                        });
-                });
-            })
-        ;
+        },
+        ..Default::default()
+    });
+    // and the phone texture
+    commands.spawn_bundle(SpriteBundle{
+        texture: asset_server.load("ui/phone.png"),
+        transform: Transform {
+            translation: [xpos, 0., 30.].into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    });
+}
+
+// Returns vector of lines
+pub fn lay_out_text_monofonto(point_size: f32, width_px: f32, text: &String) -> Vec<String> {
+    let mut last_word = 0;
+    let mut start_of_line = 0;
+    let mut rv: Vec<String> = vec![];
+    for (i, c) in text.chars().enumerate() {
+        if c == '|' {
+            // forced line break
+            rv.push(String::from(&text[start_of_line..i]));
+            start_of_line = i + 1;
+            last_word = start_of_line;
+        } else if c == ' ' {
+            // here we need to update the 'last word' situation
+            last_word = i + 1;
+        } else {
+            // TODO: this breaks if start_of_line==last_word, i.e., a word is too long to fit in a
+            // single line. Text and fix
+            if estimate_width(point_size, 1 + i - start_of_line) > width_px {
+                rv.push(String::from(&text[start_of_line..last_word]));
+                start_of_line = last_word;
+            }
+        }
+    }
+    // copy the last line, if any
+    if start_of_line < text.len() {
+        rv.push(String::from(&text[start_of_line..]));
+    }
+    return rv;
+}
+
+fn estimate_width(point_size: f32, chars: usize) -> f32 {
+    return 0.4417 * point_size * (chars as f32);
 }
 
 pub fn update(mut query: Query<(&mut Text, &DateTag)>, state: Res<GameState>) {

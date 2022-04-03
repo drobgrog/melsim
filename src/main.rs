@@ -5,13 +5,18 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use player_physics::{player_movement, Player};
 
+fn win_height() -> f32 { 1024. }
+
+fn win_width() -> f32 { 1324. }
+
 fn main() {
     App::new()
         .insert_resource(WindowDescriptor {
             title: String::from("Melbourne Lockdown Simulator"),
-            width: 1324.,
-            height: 1024.,
+            width: win_width(),
+            height: win_height(),
             vsync: true,
+            scale_factor_override: Some(1.0),
             ..Default::default()
         })
         .insert_resource(ClearColor(Color::rgb(255.0, 255.0, 255.0)))
