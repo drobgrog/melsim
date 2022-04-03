@@ -97,7 +97,7 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, mut stat
     state.mhb_the_bar = Some(commands.spawn_bundle(SpriteBundle{
         texture: asset_server.load("ui/mh_bar.png"),
         transform: Transform {
-            translation: [(-SCREEN_WIDTH / 2.) + (mhb_bar_filling_width() / 2.) + mhb_bar_offset, mhb_ypos, 10.].into(),
+            translation: [(-SCREEN_WIDTH / 2.) + (mhb_bar_filling_width() / 2.) + mhb_bar_offset, mhb_ypos, 11.].into(),
             ..Default::default()
         },
         sprite: Sprite{
