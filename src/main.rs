@@ -9,7 +9,7 @@ use player::player_movement;
 use player::setup_player;
 
 const SCREEN_HEIGHT: f32 = 1000.0;
-const SCREEN_WIDTH: f32 = 1300.0;
+const SCREEN_WIDTH: f32 = 1324.0;
 pub const TILE_SIZE: f32 = 50.;
 
 fn main() {
