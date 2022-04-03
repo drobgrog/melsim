@@ -1,6 +1,6 @@
 use crate::{teleportation::Teleporter, SCREEN_HEIGHT, SCREEN_WIDTH, TILE_SIZE};
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::*;
+use bevy_rapier2d::{na::Translation2, prelude::*};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Location {
@@ -43,15 +43,16 @@ pub fn setup_environment(
     create_environment(Location::Home, &mut commands);
 }
 
-fn create_environment(location: Location, commands: &mut Commands) {
-    let (environment_colliders, teleporters) = get_environment_collider_and_teleporters(location);
+pub fn create_environment(location: Location, commands: &mut Commands) {
+    let (environment_colliders, mut teleporters) =
+        get_environment_collider_and_teleporters(location);
 
     for collider in &environment_colliders {
         add_environment_collider(commands, collider);
     }
 
-    for (teleporter, destination) in &teleporters {
-        add_teleporter(commands, teleporter, *destination);
+    for (environment_collider, teleporter) in teleporters.drain(..) {
+        add_teleporter(commands, &environment_collider, teleporter);
     }
 }
 
@@ -59,7 +60,7 @@ fn get_environment_collider_and_teleporters(
     location: Location,
 ) -> (
     Vec<EnvironmentCollider>,
-    Vec<(EnvironmentCollider, Location)>,
+    Vec<(EnvironmentCollider, Teleporter)>,
 ) {
     match location {
         Location::Home => {
@@ -72,13 +73,19 @@ fn get_environment_collider_and_teleporters(
                 EnvironmentCollider::new(3, 4, 3, 1),
                 EnvironmentCollider::new(6, 4, 1, 5),
             ];
-            let teleporters = vec![(EnvironmentCollider::new(1, 19, 3, 1), Location::Park)];
+            let teleporters = vec![(
+                EnvironmentCollider::new(1, 19, 3, 1),
+                Teleporter::new(Location::Park, [2.0, 1.0].into()),
+            )];
 
             (environment_colliders, teleporters)
         }
         Location::Park => {
-            let environment_colliders = vec![EnvironmentCollider::new(0, 0, 11, 4)];
-            let teleporters = vec![(EnvironmentCollider::new(1, 19, 3, 1), Location::Park)];
+            let environment_colliders = vec![EnvironmentCollider::new(0, 15, 11, 4)];
+            let teleporters = vec![(
+                EnvironmentCollider::new(1, 19, 3, 1),
+                Teleporter::new(Location::Home, [2.0, 19.0].into()),
+            )];
 
             (environment_colliders, teleporters)
         }
@@ -87,11 +94,11 @@ fn get_environment_collider_and_teleporters(
 }
 
 #[derive(Component, Debug, Clone)]
-struct EnvironmentCollider {
-    x_coordinates: usize,
-    y_coordinates: usize,
-    width: usize,
-    height: usize,
+pub struct EnvironmentCollider {
+    pub x_coordinates: usize,
+    pub y_coordinates: usize,
+    pub width: usize,
+    pub height: usize,
 }
 
 impl EnvironmentCollider {
@@ -105,6 +112,7 @@ impl EnvironmentCollider {
     }
 }
 
+// TODO: These two functions are basically identical, split the logic out
 fn add_environment_collider(commands: &mut Commands, environment_collider: &EnvironmentCollider) {
     let (x_pos, y_pos) = (
         environment_collider.x_coordinates,
@@ -129,9 +137,19 @@ fn add_environment_collider(commands: &mut Commands, environment_collider: &Envi
         .insert(environment_collider.clone());
 }
 
-fn add_teleporter(commands: &mut Commands, collider: &EnvironmentCollider, destination: Location) {
-    let (x_pos, y_pos) = (collider.x_coordinates, collider.y_coordinates);
-    let (width, height) = (collider.width as f32, collider.height as f32);
+fn add_teleporter(
+    commands: &mut Commands,
+    environment_collider: &EnvironmentCollider,
+    teleporter: Teleporter,
+) {
+    let (x_pos, y_pos) = (
+        environment_collider.x_coordinates,
+        environment_collider.y_coordinates,
+    );
+    let (width, height) = (
+        environment_collider.width as f32,
+        environment_collider.height as f32,
+    );
 
     let collider_x = (-SCREEN_WIDTH / 2.) + (x_pos as f32 * TILE_SIZE) + ((width * TILE_SIZE) / 2.);
     let collider_y =
@@ -152,5 +170,6 @@ fn add_teleporter(commands: &mut Commands, collider: &EnvironmentCollider, desti
             shape: ColliderShape::cuboid(width as f32 / 2., height as f32 / 2.).into(),
             ..Default::default()
         })
-        .insert(Teleporter::new(destination));
+        .insert(teleporter)
+        .insert(environment_collider.clone());
 }
