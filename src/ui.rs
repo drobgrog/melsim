@@ -52,7 +52,7 @@ pub fn spawn_sanity_number(
     };
     let text_style = TextStyle{
         font: font,
-        font_size: 26.,
+        font_size: 36.,
         color: col,
     };
     let align = TextAlignment{
@@ -319,8 +319,8 @@ pub fn sanity_number_tween(mut commands: Commands, mut query: Query<(&mut Sanity
             let tween_time = (mhn.total_time - mhn.time_left)/mhn.total_time;
             let eased_tween_time = ease_in_back(tween_time);
 
-            t.translation.y = mhn.base_y - 90.*eased_tween_time;
-            t.translation.x = mhn.base_x + 30.*tween_time;
+            t.translation.y = mhn.base_y - 220.*eased_tween_time;
+            t.translation.x = mhn.base_x + 150.*tween_time;
 
             if tween_time > 0.5 {
                 let opacity = (tween_time * 2.) - 1.;
