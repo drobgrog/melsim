@@ -1,4 +1,10 @@
-use crate::environment::{create_environment, Environment, EnvironmentCollider};
+use crate::{
+    environment::{
+        create_environment, tile_coords_to_screen_pos, Environment, EnvironmentCollider,
+    },
+    player::{SPRITE_SIZE_X, SPRITE_SIZE_Y},
+    TILE_SIZE,
+};
 use bevy::{ecs::system::Command, prelude::*};
 use bevy_rapier2d::{na::Translation2, prelude::*};
 
@@ -11,10 +17,11 @@ pub struct Teleporter {
 }
 
 impl Teleporter {
-    pub fn new(destination: Location, new_player_location: Translation2<f32>) -> Self {
+    pub fn new(destination: Location, player: [usize; 2]) -> Self {
+        let (x, y) = tile_coords_to_screen_pos(player[0], 2., player[1], 3.);
         Self {
             destination,
-            new_player_location,
+            new_player_location: [x / TILE_SIZE, y / TILE_SIZE].into(),
         }
     }
 }
@@ -77,5 +84,6 @@ fn teleport(
 
     // Then move the player
     player_position.position.translation = teleporter.new_player_location;
+    println!("Moving player to {:?}", teleporter.new_player_location);
     environment.location = destination;
 }

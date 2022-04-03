@@ -75,7 +75,7 @@ fn get_environment_collider_and_teleporters(
             ];
             let teleporters = vec![(
                 EnvironmentCollider::new(1, 19, 3, 1),
-                Teleporter::new(Location::Park, [2.0, 1.0].into()),
+                Teleporter::new(Location::Park, [2, 2]),
             )];
 
             (environment_colliders, teleporters)
@@ -83,8 +83,8 @@ fn get_environment_collider_and_teleporters(
         Location::Park => {
             let environment_colliders = vec![EnvironmentCollider::new(0, 15, 11, 4)];
             let teleporters = vec![(
-                EnvironmentCollider::new(1, 19, 3, 1),
-                Teleporter::new(Location::Home, [2.0, 19.0].into()),
+                EnvironmentCollider::new(1, 1, 3, 1),
+                Teleporter::new(Location::Home, [2, 15]),
             )];
 
             (environment_colliders, teleporters)
@@ -123,9 +123,7 @@ fn add_environment_collider(commands: &mut Commands, environment_collider: &Envi
         environment_collider.height as f32,
     );
 
-    let collider_x = (-SCREEN_WIDTH / 2.) + (x_pos as f32 * TILE_SIZE) + ((width * TILE_SIZE) / 2.);
-    let collider_y =
-        (SCREEN_HEIGHT / 2.) - 30. - (y_pos as f32 * TILE_SIZE) - ((height * TILE_SIZE) / 2.);
+    let (collider_x, collider_y) = tile_coords_to_screen_pos(x_pos, width, y_pos, height);
 
     println!("COLLIDER: x pos: {:?}, y pos {:?}", collider_x, collider_y);
     commands
@@ -135,6 +133,18 @@ fn add_environment_collider(commands: &mut Commands, environment_collider: &Envi
             ..Default::default()
         })
         .insert(environment_collider.clone());
+}
+
+pub fn tile_coords_to_screen_pos(
+    x_pos: usize,
+    width: f32,
+    y_pos: usize,
+    height: f32,
+) -> (f32, f32) {
+    let collider_x = (-SCREEN_WIDTH / 2.) + (x_pos as f32 * TILE_SIZE) + ((width * TILE_SIZE) / 2.);
+    let collider_y =
+        (SCREEN_HEIGHT / 2.) - 30. - (y_pos as f32 * TILE_SIZE) - ((height * TILE_SIZE) / 2.);
+    (collider_x, collider_y)
 }
 
 fn add_teleporter(
@@ -151,9 +161,7 @@ fn add_teleporter(
         environment_collider.height as f32,
     );
 
-    let collider_x = (-SCREEN_WIDTH / 2.) + (x_pos as f32 * TILE_SIZE) + ((width * TILE_SIZE) / 2.);
-    let collider_y =
-        (SCREEN_HEIGHT / 2.) - 30. - (y_pos as f32 * TILE_SIZE) - ((height * TILE_SIZE) / 2.);
+    let (collider_x, collider_y) = tile_coords_to_screen_pos(x_pos, width, y_pos, height);
 
     let collider_flags = ColliderFlags {
         active_events: ActiveEvents::all(),
@@ -161,7 +169,10 @@ fn add_teleporter(
     }
     .into();
 
-    println!("COLLIDER: x pos: {:?}, y pos {:?}", collider_x, collider_y);
+    println!(
+        "TELEPORTER: x pos: {:?}, y pos {:?}",
+        collider_x, collider_y
+    );
     commands
         .spawn_bundle(ColliderBundle {
             flags: collider_flags,
