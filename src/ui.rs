@@ -224,13 +224,25 @@ pub fn update_mental_health_bar_covering(mut query: Query<(&mut Sprite, &mut Tra
 
 }
 
-pub fn update_covid_risk(mut query: Query<(&CovidRiskElement, &mut Visibility)>, state: Res<GameState>) {
-    for (cre, mut v) in query.iter_mut() {
+pub fn update_covid_risk(mut query: Query<(&CovidRiskElement, &mut Visibility, &mut Transform)>, state: Res<GameState>, time: Res<Time>) {
+    let tween_time = ease_in_out_circ((1./0.3) * f64::min(0.3, time.seconds_since_startup() - state.last_covid_risk_shown) as f32);
+    for (cre, mut v, mut t) in query.iter_mut() {
         if state.show_covid_risk && state.covid_risk >= cre.min_risk {
             v.is_visible = true;
+            t.scale.x = tween_time;
+            t.scale.y = tween_time;
         } else {
             v.is_visible = false;
         }
+    }
+}
+
+// see: https://easings.net/#easeInOutCirc
+fn ease_in_out_circ(x: f32) -> f32 {
+    return if x < 0.5 {
+      (1. - f32::sqrt(1. - f32::powf(2. * x, 2.))) / 2.
+    } else {
+      (f32::sqrt(1. - f32::powf(-2. * x + 2., 2.)) + 1.) / 2.
     }
 }
 

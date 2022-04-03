@@ -19,6 +19,7 @@ pub struct GameState {
 
     pub show_covid_risk: bool,
     pub covid_risk: f32,
+    pub last_covid_risk_shown: f64,
 }
 
 struct TextMessage {
@@ -30,9 +31,11 @@ struct TextMessage {
 pub fn debug_keys(
     key: Res<Input<KeyCode>>,
     mut state: ResMut<GameState>,
+    time: Res<Time>,
 ) {
     if key.just_pressed(KeyCode::C) {
         state.show_covid_risk = !state.show_covid_risk;
+        state.last_covid_risk_shown  = time.seconds_since_startup();
     }
     if key.just_pressed(KeyCode::V) {
         state.covid_risk += 0.1;
