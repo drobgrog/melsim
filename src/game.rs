@@ -2,6 +2,7 @@ use crate::{narrative, ui, SCREEN_HEIGHT, SCREEN_WIDTH};
 use crate::narrative::{NarrativeEvent,NarrativeCriterion,NarrativeActions};
 use bevy::prelude::*;
 use crate::player::Player;
+use crate::pickup;
 
 #[derive(Default)]
 pub struct GameState {
@@ -310,6 +311,10 @@ impl GameState {
                 commands,
                 asset_server,
             );
+        }
+
+        for s in a.spawn_item {
+            pickup::spawn_pickup(s.prototype, [s.location.0, s.location.1], commands, asset_server);
         }
     }
 }

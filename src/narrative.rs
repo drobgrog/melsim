@@ -15,7 +15,7 @@ pub enum NarrativeCriterion {
 pub struct NarrativeActions {
     pub send_texts: Vec<NarrativeTextMessage>,
     pub change_sanity: Option<i32>,  // Some(0) produces a literal '0' indicator
-    //spawn_item: Vec<SpawnablePickup>,
+    pub spawn_item: Vec<SpawnablePickup>,
 }
 
 #[derive(Clone)]
@@ -24,9 +24,10 @@ pub struct NarrativeTextMessage {
     pub body: String,
 }
 
+#[derive(Clone)]
 pub struct SpawnablePickup {
-    prototype: pickup::Pickup,
-    location: (usize, usize),
+    pub prototype: pickup::Pickup,
+    pub location: (usize, usize),
 }
 
 pub fn make_main_narrative() -> Vec<NarrativeEvent> {
@@ -52,6 +53,14 @@ pub fn make_main_narrative() -> Vec<NarrativeEvent> {
                 "Hello dearie|Just sent you a little something in the mail. Hope you're well. xoxox|Mum",
             ),
         },
+        NarrativeEvent{
+            starts_act: false,
+            criterion: NarrativeCriterion::ElapsedRel(2.5),
+            action: spawn_pickup(
+                pickup::Pickup::Potplant,
+                (5, 5)
+            ),
+        },
     ];
 }
 
@@ -69,7 +78,7 @@ fn send_text(sender: &str, body: &str) -> NarrativeActions {
             }
         ],
         change_sanity: None,
-        //spawn_item: vec![],
+        spawn_item: vec![],
     }
 }
 
@@ -77,7 +86,19 @@ fn change_sanity(by: i32) -> NarrativeActions {
     NarrativeActions{
         send_texts: Vec::new(),
         change_sanity: Some(by),
-        //spawn_item: vec![],
+        spawn_item: vec![],
     }
+}
 
+fn spawn_pickup(what: pickup::Pickup, at: (usize, usize)) -> NarrativeActions {
+    NarrativeActions{
+        send_texts: Vec::new(),
+        change_sanity: None,
+        spawn_item: vec![
+            SpawnablePickup{
+                prototype: what,
+                location: at,
+            }
+        ],
+    }
 }
