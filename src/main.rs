@@ -1,6 +1,8 @@
+pub mod covid;
 mod game;
 mod player_physics;
 mod ui;
+use crate::covid::covid_system;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use player_physics::{player_movement, Player};
@@ -25,6 +27,7 @@ fn main() {
         .add_startup_system(ui::setup_ui)
         .add_startup_system(setup)
         .add_system(player_movement)
+        .add_system(covid_system)
         .add_system(ui::update)
         .add_system(game::logic)
         .run();
