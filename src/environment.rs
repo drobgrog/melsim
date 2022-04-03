@@ -1,6 +1,13 @@
-use crate::{SCREEN_HEIGHT, SCREEN_WIDTH, TILE_SIZE};
+use crate::{teleportation::Teleporter, SCREEN_HEIGHT, SCREEN_WIDTH, TILE_SIZE};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+
+#[derive(Debug, Clone)]
+pub enum Location {
+    Home,
+    Park,
+    Supermarket,
+}
 
 pub fn setup_environment(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(SpriteBundle {
@@ -26,7 +33,7 @@ pub fn setup_environment(mut commands: Commands, asset_server: Res<AssetServer>)
     }
 
     let teleporter = EnvironmentCollider::new(1, 19, 3, 1);
-    add_teleporter(&mut commands, &teleporter);
+    add_teleporter(&mut commands, &teleporter, Location::Park);
 }
 
 struct EnvironmentCollider {
@@ -63,7 +70,7 @@ fn add_collider(commands: &mut Commands, collider: &EnvironmentCollider) {
     });
 }
 
-fn add_teleporter(commands: &mut Commands, collider: &EnvironmentCollider) {
+fn add_teleporter(commands: &mut Commands, collider: &EnvironmentCollider, destination: Location) {
     let (x_pos, y_pos) = (collider.x_coordinates, collider.y_coordinates);
     let (width, height) = (collider.width as f32, collider.height as f32);
 
@@ -86,5 +93,5 @@ fn add_teleporter(commands: &mut Commands, collider: &EnvironmentCollider) {
             shape: ColliderShape::cuboid(width as f32 / 2., height as f32 / 2.).into(),
             ..Default::default()
         })
-        .insert(ColliderDebugRender::with_id(2));
+        .insert(Teleporter::new(destination));
 }
