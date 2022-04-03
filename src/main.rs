@@ -1,6 +1,7 @@
 pub mod covid;
 pub mod environment;
 mod game;
+pub mod npc;
 pub mod pickup;
 mod player;
 pub mod teleportation;
@@ -9,9 +10,9 @@ use crate::covid::covid_system;
 use bevy::prelude::*;
 use bevy_rapier2d::physics::{NoUserData, RapierConfiguration, RapierPhysicsPlugin};
 use environment::setup_environment;
+use npc::npc_system;
 use pickup::pickup_system;
-use player::player_movement;
-use player::setup_player;
+use player::{player_movement, setup_player};
 use teleportation::teleportation_system;
 
 const SCREEN_HEIGHT: f32 = 1000.0;
@@ -47,6 +48,7 @@ fn main() {
         .add_system(game::logic)
         .add_system(teleportation_system)
         .add_system(game::debug_keys)
+        .add_system(npc_system)
         .add_system(pickup_system)
         // .add_plugin(RapierRenderPlugin) // un-comment for a debug view of colliders
         .run();

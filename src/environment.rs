@@ -1,7 +1,7 @@
+use crate::{npc::spawn_npc, teleportation::Teleporter, SCREEN_HEIGHT, SCREEN_WIDTH, TILE_SIZE};
 use crate::{
     pickup::{spawn_pickup, Pickup},
-    teleportation::{add_teleporter, Teleporter},
-    SCREEN_HEIGHT, SCREEN_WIDTH, TILE_SIZE,
+    teleportation::add_teleporter,
 };
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -45,6 +45,8 @@ pub fn setup_environment(
         .insert(Environment::new(Location::Home));
 
     create_environment(Location::Home, &mut commands);
+
+    spawn_npc(&mut commands, &asset_server);
     spawn_pickup(Pickup::Potplant, [10, 13], &mut commands, &asset_server);
 }
 
