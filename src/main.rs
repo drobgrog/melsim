@@ -40,6 +40,7 @@ fn main() {
         .add_system(ui::update)
         .add_system(ui::update_mental_health_bar_covering)
         .add_system(ui::update_covid_risk)
+        .add_system(ui::text_message_animator)
         .add_system(game::logic)
         .add_system(teleportation_system)
         .add_system(game::debug_keys)

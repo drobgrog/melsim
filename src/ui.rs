@@ -16,6 +16,12 @@ pub struct CovidRiskElement {
     min_risk: f32,
 }
 
+#[derive(Component)]
+pub struct TextMessageTag {
+    pub bottom_from: f32,
+    pub bottom_to: f32,
+}
+
 pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, mut state: ResMut<GameState>) {
     commands.spawn_bundle(UiCameraBundle::default());
     // The bundle holding the status bar i.e. the date
@@ -239,6 +245,15 @@ pub fn update_covid_risk(mut query: Query<(&CovidRiskElement, &mut Visibility, &
                 t.scale.y = 1. - tween_time;
             }
         }
+    }
+}
+
+pub fn text_message_animator(mut query: Query<(&TextMessageTag, &mut Transform)>, state:Res<GameState>, time: Res<Time>) {
+    let tween_time = ease_in_out_circ((1./0.3) * f64::min(0.3, time.seconds_since_startup() - state.last_msg_animation_time) as f32);
+    //let tween_time = ((1./0.3) * f64::min(0.3, time.seconds_since_startup() - state.last_msg_animation_time) as f32);
+    for (tmt, mut t) in query.iter_mut() {
+        let dt = tmt.bottom_to - tmt.bottom_from;
+        t.translation.y = tmt.bottom_from + dt * tween_time;
     }
 }
 
