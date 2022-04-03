@@ -1,4 +1,5 @@
-use crate::{ui, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::{narrative, ui, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::narrative::{NarrativeEvent,NarrativeCriterion,NarrativeActions};
 use bevy::prelude::*;
 use crate::player::Player;
 
@@ -22,6 +23,15 @@ pub struct GameState {
     pub show_covid_risk: bool,
     pub covid_risk: f32,
     pub last_covid_risk_shown: f64,
+
+    // Narrative control
+    main_narrative: Vec<NarrativeEvent>,
+    covid_narrative: Vec<NarrativeEvent>,
+    narrative_start_of_act: usize,
+    next_narrative_id: usize,
+    next_covid_narrative_id: usize,
+    in_covid_narrative: bool,
+    narrative_last_event: f64,
 }
 
 struct TextMessage {
@@ -60,10 +70,10 @@ pub fn debug_keys(
 
 pub fn setup_state(mut state: ResMut<GameState>) {
     state.sanity = 75;
-
     state.covid_risk = 0.5;
 
-    // `date` handled automatically by `logic`
+    state.main_narrative = narrative::make_main_narrative();
+    state.covid_narrative = narrative::make_main_narrative();
 }
 
 pub fn logic(
@@ -84,6 +94,8 @@ pub fn logic(
         let (_, player_tx) = player.single();
         ui::spawn_sanity_number(sanity_change, &mut commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
     }
+
+    state.run_narrative(&time);
 
     if state.last_msg_date != state.date {
         if state.date % 2 == 1 {
@@ -235,5 +247,39 @@ impl GameState {
             return sanity_loss_tick();
         }
         return 0;
+    }
+
+    fn run_narrative(&mut self, time: &Res<Time>) {
+        if self.in_covid_narrative && self.next_covid_narrative_id >= self.covid_narrative.len() {
+            // end of the covid narrative, so switch back to the regular narrative
+            self.in_covid_narrative = false;
+            self.next_covid_narrative_id = 0;
+            // fall through
+        }
+
+        if self.in_covid_narrative {
+            panic!("not implemented");
+        } else if self.next_narrative_id >= self.main_narrative.len() {
+            println!("Uh-oh, got to the end of the narrative!");
+        } else {
+            if self.criterion_met(&self.main_narrative[self.next_narrative_id].criterion, time) {
+                self.do_narrative_actions(self.main_narrative[self.next_narrative_id].action.clone());
+                if self.main_narrative[self.next_narrative_id].starts_act {
+                    self.narrative_start_of_act = self.next_narrative_id;
+                }
+                self.narrative_last_event = time.seconds_since_startup();
+                self.next_narrative_id += 1;
+            }
+        }
+    }
+
+    fn criterion_met(&self, c: &NarrativeCriterion, time: &Res<Time>) -> bool {
+        return match c {
+            NarrativeCriterion::ElapsedRel(v) => time.seconds_since_startup() - self.narrative_last_event > *v,
+            NarrativeCriterion::ClearedAll => panic!(" all cleareD?"),
+        };
+    }
+
+    fn do_narrative_actions(&mut self, a: NarrativeActions) {
     }
 }
