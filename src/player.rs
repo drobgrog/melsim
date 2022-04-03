@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::na::Vector2;
 
+use crate::TILE_SIZE;
+
 #[derive(Component)]
 pub struct Player {
     pub speed: f32,
@@ -32,4 +34,42 @@ pub fn player_movement(
         // the bevy_rapier plugin will update the Sprite transform.
         rb_vels.linvel = move_delta * player.speed;
     }
+}
+
+pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let sprite_size_x = 100.0;
+    let sprite_size_y = 150.0;
+
+    println!("Sprite size: x: {:?} y: {:?}", sprite_size_x, sprite_size_y);
+
+    // Set the size of the collider
+    let collider_size_x = (sprite_size_x / TILE_SIZE) / 2.;
+    let collider_size_y = (sprite_size_y / TILE_SIZE) / 2.;
+
+    println!(
+        "Collider size: x: {:?} y: {:?}",
+        collider_size_x, collider_size_y
+    );
+
+    commands
+        .spawn_bundle(SpriteBundle {
+            texture: asset_server.load("player.png"),
+            transform: Transform {
+                translation: [0., 0., 1.].into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .insert(Player { speed: 300.0 })
+        .insert_bundle(RigidBodyBundle {
+            mass_properties: (RigidBodyMassPropsFlags::ROTATION_LOCKED).into(),
+            ..Default::default()
+        })
+        .insert_bundle(ColliderBundle {
+            position: [0., 0.].into(),
+            shape: ColliderShape::cuboid(collider_size_x, collider_size_y).into(),
+            ..Default::default()
+        })
+        .insert(ColliderPositionSync::Discrete)
+        .insert(ColliderDebugRender::with_id(1));
 }
