@@ -29,8 +29,9 @@ pub fn setup_music(
 ) {
     music_state.channel = AudioChannel::new("music".to_owned());
     music_state.tracks = vec![
+        asset_server.load("music/home.mp3"),
+        asset_server.load("music/park.mp3"),
         asset_server.load("music/test.mp3"),
-        asset_server.load("music/test_2.mp3"),
     ];
 
     audio.play_looped_in_channel(music_state.tracks[0].clone(), &music_state.channel);
