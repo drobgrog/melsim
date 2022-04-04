@@ -132,6 +132,11 @@ pub fn logic(
             asset_server.load("fonts/monofonto.ttf"),
             player_tx.translation,
         );
+        if sanity_change > 0 {
+            sfx_system.play_sfx(SoundEffect::SanityUp);
+        } else {
+            sfx_system.play_sfx(SoundEffect::SanityDown);
+        }
     }
 
     state.run_narrative(
@@ -454,6 +459,11 @@ impl GameState {
                 asset_server.load("fonts/monofonto.ttf"),
                 player_tx.translation,
             );
+            if ds > 0 {
+                sfx_system.play_sfx(SoundEffect::SanityUp);
+            } else {
+                sfx_system.play_sfx(SoundEffect::SanityDown);
+            }
         }
 
         for m in a.send_texts {
