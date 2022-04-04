@@ -21,9 +21,12 @@ pub struct NarrativeActions {
 }
 
 impl NarrativeActions {
-    pub fn new_with_texts(send_texts: Vec<NarrativeTextMessage>) -> NarrativeActions {
+    pub fn new_with_text(sender: &str, body: &str) -> NarrativeActions {
         NarrativeActions {
-            send_texts,
+            send_texts: vec![NarrativeTextMessage {
+                sender: sender.into(),
+                body: body.into(),
+            }],
             ..Default::default()
         }
     }
@@ -40,6 +43,33 @@ impl NarrativeActions {
             spawn_item,
             ..Default::default()
         }
+    }
+
+    fn send_text(mut self, sender: &str, body: &str) -> Self {
+        self.send_texts.push(NarrativeTextMessage {
+            sender: String::from(sender),
+            body: String::from(body),
+        });
+        self
+    }
+
+    fn change_sanity(mut self, by: i32) -> Self {
+        self.change_sanity = Some(by);
+        self
+    }
+
+    fn spawn_pickup(
+        mut self,
+        what: pickup::Pickup,
+        at: (usize, usize),
+        narrative_actions: NarrativeActions,
+    ) -> Self {
+        self.spawn_item.push(SpawnablePickup {
+            prototype: what,
+            location: at,
+            narrative_actions,
+        });
+        self
     }
 }
 
@@ -98,34 +128,5 @@ pub fn make_covid_narrative() -> Vec<NarrativeEvent> {
 fn action() -> NarrativeActions {
     NarrativeActions {
         ..Default::default()
-    }
-}
-
-impl NarrativeActions {
-    fn send_text(mut self, sender: &str, body: &str) -> Self {
-        self.send_texts.push(NarrativeTextMessage {
-            sender: String::from(sender),
-            body: String::from(body),
-        });
-        self
-    }
-
-    fn change_sanity(mut self, by: i32) -> Self {
-        self.change_sanity = Some(by);
-        self
-    }
-
-    fn spawn_pickup(
-        mut self,
-        what: pickup::Pickup,
-        at: (usize, usize),
-        narrative_actions: NarrativeActions,
-    ) -> Self {
-        self.spawn_item.push(SpawnablePickup {
-            prototype: what,
-            location: at,
-            narrative_actions,
-        });
-        self
     }
 }

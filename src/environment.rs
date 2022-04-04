@@ -55,10 +55,7 @@ pub fn setup_environment(
         [10, 13],
         &mut commands,
         &asset_server,
-        NarrativeActions::new_with_texts(vec![NarrativeTextMessage {
-            sender: "Bowl of Petunias".into(),
-            body: "Oh no, not again".into(),
-        }]),
+        NarrativeActions::new_with_text("Bowl of Petunias", "Oh no, not again"),
     );
 }
 
