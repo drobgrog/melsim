@@ -111,10 +111,15 @@ fn get_environment_collider_and_teleporters(
             (environment_colliders, teleporters)
         }
         Location::Park => {
-            let environment_colliders = vec![EnvironmentCollider::new(0, 15, 11, 4)];
+            let environment_colliders = vec![
+                EnvironmentCollider::new(0, 0, 2, 20),
+                EnvironmentCollider::new(2, 18, 18, 2),
+                EnvironmentCollider::new(4, 0, 16, 2),
+                EnvironmentCollider::new(18, 2, 2, 12),
+            ];
             let teleporters = vec![
                 (
-                    EnvironmentCollider::new(1, 1, 3, 1),
+                    EnvironmentCollider::new(1, 1, 2, 1),
                     Teleporter::new(Location::Home, [2, 15]),
                 ),
                 (
