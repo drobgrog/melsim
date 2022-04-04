@@ -5,6 +5,8 @@ use crate::player::Player;
 use crate::{narrative, ui, SCREEN_HEIGHT, SCREEN_WIDTH};
 use bevy::prelude::*;
 
+const STARTING_SANITY: i32 = 75;
+
 #[derive(Default)]
 pub struct GameState {
     messages: Vec<TextMessage>,
@@ -33,6 +35,9 @@ pub struct GameState {
     next_covid_narrative_id: usize,
     in_covid_narrative: bool,
     narrative_last_event: f64,
+    game_over_image: Handle<Image>,
+    game_over: bool,
+    game_over_image_entity: Option<Entity>,
 }
 
 struct TextMessage {
@@ -87,14 +92,14 @@ pub fn debug_keys(
         };
         music_state.switch_tracks(next_index);
     }
+
+    if key.just_pressed(KeyCode::G) {
+        state.sanity = 0;
+    }
 }
 
-pub fn setup_state(mut state: ResMut<GameState>) {
-    state.sanity = 75;
-    state.covid_risk = 0.5;
-
-    state.main_narrative = narrative::make_main_narrative();
-    state.covid_narrative = narrative::make_main_narrative();
+pub fn setup_state(mut state: ResMut<GameState>, asset_server: Res<AssetServer>) {
+    state.setup(&asset_server);
 }
 
 pub fn logic(
@@ -104,6 +109,11 @@ pub fn logic(
     asset_server: Res<AssetServer>,
     player: Query<(&Player, &Transform)>,
 ) {
+    if state.sanity == 0 {
+        game_over(&mut commands, &mut state);
+        return;
+    }
+
     state.date = 1 + (time.seconds_since_startup() / 5.) as i32;
     if state.last_date < state.date {
         state.last_date = state.date;
@@ -124,6 +134,26 @@ pub fn logic(
     state.run_narrative(&time, &mut commands, &asset_server, &player);
 }
 
+fn game_over(commands: &mut Commands, state: &mut GameState) {
+    if !state.game_over {
+        state.game_over = true;
+        state.game_over_image_entity = Some(
+            commands
+                .spawn_bundle(SpriteBundle {
+                    texture: state.game_over_image.clone(),
+                    transform: Transform {
+                        translation: [0., 0., 100.].into(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                })
+                .id(),
+        );
+    }
+
+    // Do nothing, and wait for the player to close the window.
+}
+
 // How often should we lose (/gain) sanity just for existing?
 fn time_for_sanity_loss() -> f64 {
     5.
@@ -135,6 +165,14 @@ fn sanity_loss_tick() -> i32 {
 }
 
 impl GameState {
+    fn setup(&mut self, asset_server: &Res<AssetServer>) {
+        self.sanity = STARTING_SANITY;
+        self.covid_risk = 0.5;
+        self.main_narrative = narrative::make_main_narrative();
+        self.covid_narrative = narrative::make_main_narrative();
+        self.game_over_image = asset_server.load("game_over.png");
+    }
+
     fn add_text_message(
         &mut self,
         sender: &str,
