@@ -461,7 +461,7 @@ impl GameState {
         }
 
         for s in a.spawn_npc {
-            npc::spawn_npc(commands, asset_server, [0, 0]);
+            npc::spawn_npc(commands, asset_server, s.location);
         }
     }
 

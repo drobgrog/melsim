@@ -1,5 +1,6 @@
 Sender,Body (Rough),Body (Polished),Elapsed Time,Cleared All Pickups?,Location change?,Send Texts?,Change Sanity?,Spawn Item?,Unlock area?,Spawn NPC
 Dictator Dan,YOU HAVE TO STAY INSIDE FOREVER,,5,,,,-50,,,
+[FRIEND APPEARS],,,10,,,,,,,Friend;10;10
 Friend,"Holy shit, this is crazy!",,2,,,,,,,
 Mum,Are you okay? We've just cancelled our caravan trip. Have you got enough food? I sent you a little care package.,,2,,,,,Care Package,,
 Other Friend,All of my shifts just got cut for the next week. :-(,,,TRUE,,,,,,
@@ -23,7 +24,6 @@ Mum,Make sure to keep away from people though -  can get the COVIDs if you get t
 Dad,You mother's been watching the news all day. I told her she should spend a bit more time in the garden,,,,,,,,,
 Yourself,"Huh, nobody here either",,5,,,,10,,,
 Yourself,"Oh look, a bird!",,5,,,,10,,,
-[FRIEND APPEARS],,,10,,,,,,,Friend;10;10
 Friend,Good to see you! You don't look too bad,,5,,,,,,,
 Friend,Hey apparently we're meant to be like 1.5 metres apart or whatever,,1,,,,,,,
 Friend,Your COVID risk goes like way up if you get too close to people,,1,,,,,,,
