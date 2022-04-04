@@ -9,7 +9,6 @@ use crate::{
 use bevy::prelude::*;
 use bevy_rapier2d::{na::Translation2, prelude::*};
 
-use crate::npc::spawn_npc;
 use crate::{environment::Location, player::Player};
 
 #[derive(Component, Debug, Clone)]
@@ -31,7 +30,7 @@ impl Teleporter {
 pub fn teleportation_system(
     mut commands: Commands,
     narrow_phase: Res<NarrowPhase>,
-    mut player_info: Query<&mut RigidBodyPositionComponent, With<Player>>,
+    mut player_info: Query<(Entity, &mut RigidBodyPositionComponent), With<Player>>,
     teleporter_query: Query<(Entity, &Teleporter)>,
     mut environment_query: Query<(&mut TextureAtlasSprite, &mut Environment)>,
     environment_collider_query: Query<Entity, With<EnvironmentCollider>>,
@@ -39,22 +38,26 @@ pub fn teleportation_system(
     asset_server: Res<AssetServer>,
     mut sfx_system: ResMut<SFXSystem>,
 ) {
-    let mut player_position = player_info.single_mut();
+    let (player_entity, mut player_position) = player_info.single_mut();
 
     // For each teleporter ask - has the player collided with us?
     for (teleporter_entity, teleporter) in teleporter_query.iter() {
-        for (_, _, intersecting) in narrow_phase.intersections_with(teleporter_entity.handle()) {
-            if intersecting {
+        for (collider_a, collider_b, intersecting) in
+            narrow_phase.intersections_with(teleporter_entity.handle())
+        {
+            if collider_a.entity() == player_entity || collider_b.entity() == player_entity {
                 sfx_system.play_sfx(SoundEffect::EntranceExit);
-                teleport(
-                    teleporter,
-                    &mut player_position,
-                    &mut environment_query,
-                    &mut commands,
-                    &environment_collider_query,
-                    &mut music_state,
-                    &asset_server,
-                );
+                if intersecting {
+                    teleport(
+                        teleporter,
+                        &mut player_position,
+                        &mut environment_query,
+                        &mut commands,
+                        &environment_collider_query,
+                        &mut music_state,
+                        &asset_server,
+                    );
+                }
             }
         }
     }

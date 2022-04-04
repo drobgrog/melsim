@@ -1,10 +1,10 @@
 use crate::music::MusicState;
 use crate::narrative::{NarrativeActions, NarrativeTextMessage};
-use crate::{npc::spawn_npc, teleportation::Teleporter, SCREEN_HEIGHT, SCREEN_WIDTH, TILE_SIZE};
 use crate::{
     pickup::{spawn_pickup, Pickup},
     teleportation::add_teleporter,
 };
+use crate::{teleportation::Teleporter, SCREEN_HEIGHT, SCREEN_WIDTH, TILE_SIZE};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -52,7 +52,7 @@ pub fn setup_environment(
 
     create_environment(Location::Home, &mut commands, &mut music_state);
 
-    //spawn_npc(&mut commands, &asset_server);
+    // spawn_npc(&mut commands, &asset_server, [10, 12]);
     spawn_pickup(
         Pickup::Potplant,
         [10, 13],
