@@ -6,6 +6,7 @@ use crate::{narrative, ui, SCREEN_HEIGHT, SCREEN_WIDTH};
 use bevy::prelude::*;
 
 pub const STARTING_SANITY: i32 = 75;
+const COVID_RISK_THRESHOLD: f32 = 0.05;
 
 #[derive(Default)]
 pub struct GameState {
@@ -390,6 +391,20 @@ impl GameState {
                 asset_server,
                 s.narrative_actions,
             );
+        }
+    }
+
+    pub fn set_covid_risk(&mut self, covid_risk: f32, time: &Res<Time>) {
+        let old_scr = self.show_covid_risk;
+        self.covid_risk = covid_risk;
+        if covid_risk > COVID_RISK_THRESHOLD {
+            self.show_covid_risk = true;
+        } else {
+            self.show_covid_risk = false;
+        }
+
+        if old_scr != self.show_covid_risk {
+            self.last_covid_risk_shown = time.seconds_since_startup();
         }
     }
 }
