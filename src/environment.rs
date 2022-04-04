@@ -105,6 +105,8 @@ fn get_environment_collider_and_teleporters(
                 EnvironmentCollider::new(0, 4, 3, 5),
                 EnvironmentCollider::new(3, 4, 3, 1),
                 EnvironmentCollider::new(6, 4, 1, 5),
+                EnvironmentCollider::new(0, 8, 1, 11), // bottom left half of wall
+                EnvironmentCollider::new(4, 16, 16, 4), // bottom area
             ];
             let teleporters = vec![(
                 EnvironmentCollider::new(1, 19, 3, 1),
@@ -119,9 +121,10 @@ fn get_environment_collider_and_teleporters(
                 EnvironmentCollider::new(2, 18, 18, 2),
                 EnvironmentCollider::new(4, 0, 16, 2),
                 EnvironmentCollider::new(18, 2, 2, 12),
-                EnvironmentCollider::new(5, 2, 2, 2),  // sign
+                EnvironmentCollider::new(5, 2, 2, 2), // home sign
                 EnvironmentCollider::new(2, 14, 3, 4), // tree
-                EnvironmentCollider::new(15, 2, 4, 3), // swings
+                EnvironmentCollider::new(14, 2, 4, 3), // swings
+                EnvironmentCollider::new(16, 12, 2, 2), // shop sign
             ];
             let teleporters = vec![
                 (
@@ -138,7 +141,15 @@ fn get_environment_collider_and_teleporters(
         }
         Location::Shops => {
             let environment_colliders = vec![
-            // EnvironmentCollider::new(0, 15, 11, 4)
+                EnvironmentCollider::new(0, 0, 1, 20),   // far left wall
+                EnvironmentCollider::new(1, 0, 19, 2),   // top wall
+                EnvironmentCollider::new(1, 19, 19, 1),  // bottom wall
+                EnvironmentCollider::new(18, 1, 20, 18), // far right wall
+                EnvironmentCollider::new(6, 6, 10, 4),   // top isle
+                EnvironmentCollider::new(4, 14, 10, 2),  // bottom isle
+                EnvironmentCollider::new(1, 7, 1, 3),    // left of staffed checkout
+                EnvironmentCollider::new(2, 8, 2, 2),    // right of staffed checkout
+                EnvironmentCollider::new(1, 13, 3, 3),   // aut
             ];
             let teleporters = vec![
                 (
