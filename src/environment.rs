@@ -142,7 +142,6 @@ impl EnvironmentCollider {
     }
 }
 
-// TODO: These two functions are basically identical, split the logic out
 fn add_environment_collider(commands: &mut Commands, environment_collider: &EnvironmentCollider) {
     let (x_pos, y_pos) = (
         environment_collider.x_coordinates,

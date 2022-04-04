@@ -68,6 +68,7 @@ fn set_new_direction(rand: f64, current_velocity: &mut Vector2<f32>) {
     );
 }
 
+// TODO: add ability to set location of NPC
 pub fn spawn_npc(commands: &mut Commands, asset_server: &Res<AssetServer>) {
     println!(
         "Spawning NPC: size: x: {:?} y: {:?}",
@@ -100,7 +101,7 @@ pub fn spawn_npc(commands: &mut Commands, asset_server: &Res<AssetServer>) {
             ..Default::default()
         })
         .insert_bundle(ColliderBundle {
-            position: [0., -5.].into(),
+            position: [0., 0.].into(),
             shape: ColliderShape::cuboid(collider_size_x, collider_size_y).into(),
             ..Default::default()
         })

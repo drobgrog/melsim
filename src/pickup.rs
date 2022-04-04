@@ -18,27 +18,31 @@ pub fn pickup_system(
     time: Res<Time>,
     asset_server: Res<AssetServer>,
     mut game_state: ResMut<GameState>,
-    player_query: Query<(&Player, &Transform)>,
+    player_query: Query<(Entity, &Player, &Transform)>,
 ) {
     // For each pickup - ask did someone collide with us?
-    for (pickup_entity, pickup, narrative_actions) in pickup_query.iter() {
+    for (collector_entity, pickup, narrative_actions) in pickup_query.iter() {
         for (collider_a, collider_b, intersecting) in
-            narrow_phase.intersections_with(pickup_entity.handle())
+            narrow_phase.intersections_with(collector_entity.handle())
         {
-            let collector = if collider_a.entity() == pickup_entity {
+            let collector = if collider_a.entity() == collector_entity {
                 collider_b
             } else {
                 collider_a
             };
             if intersecting {
-                collect_pickup(pickup, pickup_entity, collector.entity(), &mut commands);
-                game_state.do_narrative_actions(
-                    narrative_actions.clone(),
-                    &time,
-                    &mut commands,
-                    &asset_server,
-                    &player_query,
-                );
+                collect_pickup(pickup, collector_entity, collector.entity(), &mut commands);
+                let (player_entity, _, player_transform) = player_query.single();
+
+                if collector_entity == player_entity {
+                    game_state.do_narrative_actions(
+                        narrative_actions.clone(),
+                        &time,
+                        &mut commands,
+                        &asset_server,
+                        player_transform,
+                    );
+                }
             }
         }
     }
