@@ -173,6 +173,7 @@ impl GameState {
         self.main_narrative = narrative::make_main_narrative();
         self.covid_narrative = narrative::make_covid_narrative();
         self.game_over_image = asset_server.load("game_over.png");
+        let _dummy: Handle<Image> = asset_server.load("close_contact_alert.png");
     }
 
     fn add_text_message(
@@ -426,9 +427,6 @@ impl GameState {
     }
 
     pub fn covid_narrative_switch(&mut self,
-        //environment_query: &Query<(&mut TextureAtlasSprite, &mut Environment)>,
-        //music_state: &mut ResMut<MusicState>,
-        //asset_server: Res<AssetServer>,
         time: &Res<Time>,
         player_position: &mut Mut<RigidBodyPositionComponent>,
         environment_query: &mut Query<(&mut TextureAtlasSprite, &mut environment::Environment)>,
@@ -461,5 +459,17 @@ impl GameState {
             asset_server,
         );
 
+        // Spawn the scary transition screen
+        let xpos = -SCREEN_WIDTH / 2. + 1000./2.;
+        commands.spawn_bundle(SpriteBundle {
+            texture: asset_server.load("close_contact_alert.png"),
+            transform: Transform {
+                translation: [xpos, 0., 50.].into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        }).insert(ui::CovidTransitionUiTag{
+            time_left: ui::TRANSITION_LENGTH,
+        });
     }
 }
