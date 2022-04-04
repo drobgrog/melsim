@@ -11,7 +11,10 @@ mod ui;
 use crate::covid::covid_system;
 use bevy::prelude::*;
 use bevy_kira_audio::AudioPlugin;
-use bevy_rapier2d::physics::{NoUserData, RapierConfiguration, RapierPhysicsPlugin};
+use bevy_rapier2d::{
+    physics::{NoUserData, RapierConfiguration, RapierPhysicsPlugin},
+    render::RapierRenderPlugin,
+};
 use environment::setup_environment;
 use music::{music_system, setup_music, MusicState};
 use npc::npc_system;
@@ -19,7 +22,7 @@ use pickup::pickup_system;
 use player::{player_movement, setup_player};
 use teleportation::teleportation_system;
 
-const SCREEN_HEIGHT: f32 = 1000.0;
+const SCREEN_HEIGHT: f32 = 1030.0;
 const SCREEN_WIDTH: f32 = 1324.0;
 pub const TILE_SIZE: f32 = 50.;
 

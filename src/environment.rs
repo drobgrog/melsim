@@ -12,7 +12,7 @@ use bevy_rapier2d::prelude::*;
 pub enum Location {
     Home,
     Park,
-    Supermarket,
+    Shops,
 }
 
 #[derive(Debug, Clone, Component)]
@@ -36,11 +36,14 @@ pub fn setup_environment(
     let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(1000.0, 1000.0), 3, 1);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
+    let x_pos = -(SCREEN_WIDTH / 2.) + 500.;
+    let y_pos = ((SCREEN_HEIGHT / 2.) - 500.) - 30.;
+
     commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: texture_atlas_handle,
             transform: Transform {
-                translation: [-150., -30., 0.].into(),
+                translation: [x_pos, y_pos, 0.].into(),
                 ..Default::default()
             },
             ..Default::default()
@@ -81,7 +84,7 @@ pub fn create_environment(
     let music_track_index = match location {
         Location::Home => 0,
         Location::Park => 1,
-        Location::Supermarket => 2,
+        Location::Shops => 2,
     };
     music_state.switch_tracks(music_track_index);
 }
@@ -102,6 +105,8 @@ fn get_environment_collider_and_teleporters(
                 EnvironmentCollider::new(0, 4, 3, 5),
                 EnvironmentCollider::new(3, 4, 3, 1),
                 EnvironmentCollider::new(6, 4, 1, 5),
+                EnvironmentCollider::new(0, 8, 1, 11), // bottom left half of wall
+                EnvironmentCollider::new(4, 16, 16, 4), // bottom area
             ];
             let teleporters = vec![(
                 EnvironmentCollider::new(1, 19, 3, 1),
@@ -111,15 +116,54 @@ fn get_environment_collider_and_teleporters(
             (environment_colliders, teleporters)
         }
         Location::Park => {
-            let environment_colliders = vec![EnvironmentCollider::new(0, 15, 11, 4)];
-            let teleporters = vec![(
-                EnvironmentCollider::new(1, 1, 3, 1),
-                Teleporter::new(Location::Home, [2, 15]),
-            )];
+            let environment_colliders = vec![
+                EnvironmentCollider::new(0, 0, 2, 20),
+                EnvironmentCollider::new(2, 18, 18, 2),
+                EnvironmentCollider::new(4, 0, 16, 2),
+                EnvironmentCollider::new(18, 2, 2, 12),
+                EnvironmentCollider::new(5, 2, 2, 2), // home sign
+                EnvironmentCollider::new(2, 14, 3, 4), // tree
+                EnvironmentCollider::new(14, 2, 4, 3), // swings
+                EnvironmentCollider::new(16, 12, 2, 2), // shop sign
+            ];
+            let teleporters = vec![
+                (
+                    EnvironmentCollider::new(1, 1, 2, 1),
+                    Teleporter::new(Location::Home, [2, 15]),
+                ),
+                (
+                    EnvironmentCollider::new(18, 14, 2, 4),
+                    Teleporter::new(Location::Shops, [2, 2]),
+                ),
+            ];
 
             (environment_colliders, teleporters)
         }
-        Location::Supermarket => todo!(),
+        Location::Shops => {
+            let environment_colliders = vec![
+                EnvironmentCollider::new(0, 0, 1, 20),   // far left wall
+                EnvironmentCollider::new(1, 0, 19, 2),   // top wall
+                EnvironmentCollider::new(1, 19, 19, 1),  // bottom wall
+                EnvironmentCollider::new(18, 1, 20, 18), // far right wall
+                EnvironmentCollider::new(6, 6, 10, 4),   // top isle
+                EnvironmentCollider::new(4, 14, 10, 2),  // bottom isle
+                EnvironmentCollider::new(1, 7, 1, 3),    // left of staffed checkout
+                EnvironmentCollider::new(2, 8, 2, 2),    // right of staffed checkout
+                EnvironmentCollider::new(1, 13, 3, 3),   // aut
+            ];
+            let teleporters = vec![
+                (
+                    EnvironmentCollider::new(0, 10, 1, 3),
+                    Teleporter::new(Location::Park, [16, 14]),
+                ),
+                (
+                    EnvironmentCollider::new(0, 16, 1, 3),
+                    Teleporter::new(Location::Park, [16, 14]),
+                ),
+            ];
+
+            (environment_colliders, teleporters)
+        }
     }
 }
 
@@ -161,6 +205,7 @@ fn add_environment_collider(commands: &mut Commands, environment_collider: &Envi
             shape: ColliderShape::cuboid(width as f32 / 2., height as f32 / 2.).into(),
             ..Default::default()
         })
+        .insert(ColliderDebugRender::with_id(2))
         .insert(environment_collider.clone());
 }
 
