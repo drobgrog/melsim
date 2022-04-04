@@ -87,7 +87,7 @@ pub fn debug_keys(
     }
     if key.just_pressed(KeyCode::M) {
         println!("M PRESSED");
-        let next_index = if music_state.current_track_index == 0 {
+        let next_index = if music_state.changing_from == 0 {
             1
         } else {
             0
