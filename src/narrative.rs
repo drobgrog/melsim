@@ -7,24 +7,27 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::str::FromStr;
 
+#[derive(Debug)]
 pub struct NarrativeEvent {
     pub starts_act: bool,
     pub criterion: NarrativeCriterion,
     pub action: NarrativeActions,
 }
 
+#[derive(Debug)]
 pub enum NarrativeCriterion {
     ElapsedRel(f64),         // at least this many seconds have elasped since last event
     ClearedAll,              // all items in the environment must be cleared
     InEnvironment(Location), // current location is here
 }
 
-#[derive(Default, Clone, Component)]
+#[derive(Debug, Default, Clone, Component)]
 pub struct NarrativeActions {
     pub send_texts: Vec<NarrativeTextMessage>,
     pub change_sanity: Option<i32>, // Some(0) produces a literal '0' indicator
     pub spawn_item: Vec<SpawnablePickup>,
     pub spawn_npc: Vec<SpawnableNpc>,
+    pub teleporter_control: Vec<(Location, bool)>,
 }
 
 impl NarrativeActions {
@@ -50,20 +53,20 @@ impl NarrativeActions {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct NarrativeTextMessage {
     pub sender: String,
     pub body: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SpawnablePickup {
     pub prototype: pickup::Pickup,
     pub location: (usize, usize),
     pub narrative_actions: NarrativeActions,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SpawnableNpc {
     pub location: [usize; 2],
 }
@@ -92,63 +95,80 @@ pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
         };
 
         let time = get(&h, &x, "Elapsed Time");
-        if non_empty(time) && non_time_condition.is_some() {
+        let criterion = if non_empty(time) && non_time_condition.is_some() {
             // Special case - if there is a time and other criteria, generate dummy criterion
             rv.push(NarrativeEvent {
                 starts_act: false, // TODO
                 criterion: non_time_condition.unwrap(),
                 action: action(),
             });
-        }
+            // and now the time criterion is the "main" one
+            NarrativeCriterion::ElapsedRel(f64::from_str(time).expect("bad parse time"))
+        } else if let Some(x) = non_time_condition {
+            x
+        } else if non_empty(time) {
+            NarrativeCriterion::ElapsedRel(f64::from_str(time).expect("bad parse time"))
+        } else {
+            // skip this one -- no condition
+            continue;
+        };
 
-        // Now create the real thing iff 'time' is non-empty
-        // The logic of this is that we end up skipping stuff with no criteria at all
-        if non_empty(time) {
-            let criterion =
-                NarrativeCriterion::ElapsedRel(f64::from_str(time).expect("bad parse time"));
+        let mut a = action();
 
-            let mut a = action();
-
-            // Process the action
-            let sender = get(&h, &x, "Sender");
-            if non_empty(sender) && !sender.starts_with("[") {
-                let polished = get(&h, &x, "Body (Polished)");
-                let rough = get(&h, &x, "Body (Rough)");
-                a.send_texts.push(NarrativeTextMessage {
-                    sender: String::from(get(&h, &x, "Sender")),
-                    body: String::from(if non_empty(polished) { polished } else { rough }),
-                });
-            }
-
-            let sanity = get(&h, &x, "Change Sanity?");
-            if non_empty(sanity) {
-                a.change_sanity = Some(i32::from_str_radix(sanity, 10).expect("bad parse sanity"));
-            }
-
-            let spawn_item = get(&h, &x, "Spawn Item?");
-            if non_empty(spawn_item) {
-                a.spawn_item.push(str2spawnitem(spawn_item));
-            }
-
-            let spawn_npc = get(&h, &x, "Spawn NPC");
-            if non_empty(spawn_npc) {
-                let parts: Vec<&str> = spawn_npc.split(";").collect();
-                a.spawn_npc.push(SpawnableNpc {
-                    location: [
-                        usize::from_str(parts[1]).unwrap(),
-                        usize::from_str(parts[2]).unwrap(),
-                    ],
-                });
-            }
-
-            rv.push(NarrativeEvent {
-                starts_act: true, // TODO
-                criterion: criterion,
-                action: a,
+        // Process the action
+        let sender = get(&h, &x, "Sender");
+        if non_empty(sender) && !sender.starts_with("[") {
+            let polished = get(&h, &x, "Body (Polished)");
+            let rough = get(&h, &x, "Body (Rough)");
+            a.send_texts.push(NarrativeTextMessage {
+                sender: String::from(get(&h, &x, "Sender")),
+                body: String::from(if non_empty(polished) { polished } else { rough }),
             });
         }
+
+        let sanity = get(&h, &x, "Change Sanity?");
+        if non_empty(sanity) {
+            a.change_sanity = Some(i32::from_str_radix(sanity, 10).expect("bad parse sanity"));
+        }
+
+        let spawn_item = get(&h, &x, "Spawn Item?");
+        if non_empty(spawn_item) {
+            a.spawn_item.push(str2spawnitem(spawn_item));
+        }
+
+        let spawn_npc = get(&h, &x, "Spawn NPC");
+        if non_empty(spawn_npc) {
+            let parts: Vec<&str> = spawn_npc.split(";").collect();
+            a.spawn_npc.push(SpawnableNpc {
+                location: [
+                    usize::from_str(parts[1]).unwrap(),
+                    usize::from_str(parts[2]).unwrap(),
+                ],
+            });
+        }
+
+        let unlocks = get(&h, &x, "Unlock area?");
+        if non_empty(unlocks) {
+            for location in unlocks.split(";") {
+                a.teleporter_control.push( (str2location(location), true) );
+            }
+        }
+
+        let locks = get(&h, &x, "Lock area?");
+        if non_empty(locks) {
+            for location in locks.split(";") {
+                a.teleporter_control.push( (str2location(location), false) );
+            }
+        }
+
+        rv.push(NarrativeEvent {
+            starts_act: true, // TODO
+            criterion: criterion,
+            action: a,
+        });
     }
 
+    // panic!("{:#?}", rv);
     return rv;
 }
 
@@ -156,6 +176,7 @@ fn str2location(s: &str) -> Location {
     match s {
         "Park" => Location::Park,
         "Home" => Location::Home,
+        "Shops" => Location::Shops,
         _ => panic!("bad location >>{}<<", s),
     }
 }
