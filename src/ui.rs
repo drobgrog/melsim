@@ -147,7 +147,7 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(SpriteBundle {
         texture: asset_server.load("ui/white_bg.png"),
         transform: Transform {
-            translation: [xpos, 0., 10.].into(),
+            translation: [xpos, -15., 10.].into(),
             ..Default::default()
         },
         ..Default::default()
@@ -156,7 +156,7 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(SpriteBundle {
         texture: asset_server.load("ui/phone.png"),
         transform: Transform {
-            translation: [xpos, 0., 30.].into(),
+            translation: [xpos, -15., 30.].into(),
             ..Default::default()
         },
         ..Default::default()
@@ -164,12 +164,12 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 
     // The bundle for the "Sanity" bar
-    let main_display_height = 1000.;
     let main_display_width = 1000.;
-    let mhb_bar_height = 40.;
-    let mhb_below_top = 30.;
+    //let mhb_bar_height = 40.;
+    //let mhb_below_top = 30.;
 
-    let mhb_ypos = main_display_height / 2. - mhb_bar_height / 2. - mhb_below_top;
+    // I don't understand why this has changed, but these pixel coordinates seem to work
+    let mhb_ypos = SCREEN_HEIGHT / 2. - 60.;//. - mhb_bar_height / 2. /* - mhb_below_top;
 
     commands.spawn_bundle(SpriteBundle{
         texture: asset_server.load("ui/mh_bg.png"),
@@ -185,7 +185,7 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(SpriteBundle{
         texture: asset_server.load("ui/mh_bar.png"),
         transform: Transform {
-            translation: [(-SCREEN_WIDTH / 2.) + (mhb_bar_filling_width() / 2.) + mhb_bar_offset, mhb_ypos, 11.].into(),
+            translation: [(-SCREEN_WIDTH / 2.) + (mhb_bar_filling_width() / 2.) + mhb_bar_offset, mhb_ypos - 1., 11.].into(),
             ..Default::default()
         },
         sprite: Sprite{

@@ -10,6 +10,7 @@ bevy = {version = "0.6.1", features = [
   "bevy_gilrs",
   "bevy_winit",
   "render",
+  "subpixel_glyph_atlas",
   "png",
   "hdr",
   "x11",

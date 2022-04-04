@@ -124,10 +124,6 @@ pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
                 action: a,
             });
         }
-        println!("{}", get(&h, &x, "Sender"));
-
-        /*
-        */
     }
 
     return rv;
@@ -155,7 +151,6 @@ fn str2spawnitem(s: &str) -> SpawnablePickup {
 
 // TODO: whitespace?
 fn non_empty(s: &str) -> bool {
-    println!("non empty '{}' ? {} - {}", s, s.len() == 0, s.len());
     s.len() > 0
 }
 
