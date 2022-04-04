@@ -5,7 +5,7 @@ use crate::player::Player;
 use crate::{narrative, ui, SCREEN_HEIGHT, SCREEN_WIDTH};
 use bevy::prelude::*;
 
-const STARTING_SANITY: i32 = 75;
+pub const STARTING_SANITY: i32 = 75;
 
 #[derive(Default)]
 pub struct GameState {
