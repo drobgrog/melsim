@@ -1,0 +1,3 @@
+Sender,Body (Rough),Body (Polished),Elapsed Time,Cleared All Pickups?,Location change?,Send Texts?,Change Sanity?,Spawn Item?,Unlock area?,Lock area?,Spawn NPC
+Department of Health,"You have been exposed to Covid as a close contact with another person. You must isolate for seven days.|During this time, you must not leave your house.",,0.1,,,,,,,Park;Shops,
+Department of Health,Your Covid quarantine has finished. You can now leave your house. Stay safe out there.,,35,,,,,,,,
