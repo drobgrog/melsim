@@ -69,6 +69,7 @@ pub fn debug_keys(
     }
     if key.just_pressed(KeyCode::P) {
         let (_, player_tx) = player.single();
+        state.sanity += 3;
         ui::spawn_sanity_number(
             3,
             &mut commands,
@@ -113,7 +114,7 @@ pub fn logic(
     pickups_query: Query<(&pickup::Pickup,)>,
     environment_query: Query<(&environment::Environment,)>,
 ) {
-    if state.sanity == 0 {
+    if state.sanity <= 0 {
         game_over(&mut commands, &mut state);
         return;
     }
@@ -179,8 +180,8 @@ impl GameState {
     fn setup(&mut self, asset_server: &Res<AssetServer>) {
         self.sanity = STARTING_SANITY;
         self.covid_risk = 0.5;
-        self.main_narrative = narrative::make_main_narrative();
-        self.covid_narrative = narrative::make_covid_narrative();
+        self.main_narrative = narrative::load_csv("narrative/main.csv");
+        self.covid_narrative = narrative::hardcoded_covid_narrative();
         self.game_over_image = asset_server.load("game_over.png");
         let _dummy: Handle<Image> = asset_server.load("close_contact_alert.png");
     }

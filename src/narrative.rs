@@ -2,6 +2,10 @@ use bevy::prelude::Component;
 
 use crate::pickup;
 use crate::environment::Location;
+use std::fs::File;
+use std::collections::HashMap;
+use csv::StringRecord;
+use std::str::FromStr;
 
 pub struct NarrativeEvent {
     pub starts_act: bool,
@@ -58,7 +62,120 @@ pub struct SpawnablePickup {
     pub narrative_actions: NarrativeActions,
 }
 
-pub fn make_main_narrative() -> Vec<NarrativeEvent> {
+pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
+    let file = File::open(file).expect("error opening narrative csv");
+    let mut rdr = csv::Reader::from_reader(file);
+
+    // First, make the header
+    let headers = rdr.headers().expect("error reading row").clone();
+    let h = csv_header(&headers);
+
+    let mut rv = Vec::new();
+    for x in rdr.records() {
+        let x = x.unwrap();
+        let non_time_condition = if non_empty(get(&h, &x, "Cleared All Pickups?")) {
+            Some(NarrativeCriterion::ClearedAll)
+        } else if non_empty(get(&h, &x, "Location change?")) {
+            Some(NarrativeCriterion::InEnvironment(str2location(get(&h, &x, "Location change?"))))
+        } else {
+            None
+        };
+
+        let time = get(&h, &x, "Elapsed Time");
+        if non_empty(time) && non_time_condition.is_some() {
+            // Special case - if there is a time and other criteria, generate dummy criterion
+            rv.push(NarrativeEvent{
+                starts_act: false, // TODO
+                criterion: non_time_condition.unwrap(),
+                action: action(),
+            });
+        }
+
+        // Now create the real thing iff 'time' is non-empty
+        // The logic of this is that we end up skipping stuff with no criteria at all
+        if non_empty(time) {
+            let criterion = NarrativeCriterion::ElapsedRel(f64::from_str(time).expect("bad parse time"));
+
+            let mut a = action();
+
+            // Process the action
+            if non_empty(get(&h, &x, "Sender")) {
+                let polished = get(&h, &x, "Body (Polished)");
+                let rough = get(&h, &x, "Body (Rough)");
+                a.send_texts.push(NarrativeTextMessage{
+                    sender: String::from(get(&h, &x, "Sender")),
+                    body: String::from(if non_empty(polished) { polished } else { rough }),
+                });
+            }
+
+            let sanity = get(&h, &x, "Change Sanity?");
+            if non_empty(sanity) {
+                a.change_sanity = Some(i32::from_str_radix(sanity, 10).expect("bad parse sanity"));
+            }
+
+            let spawn_item = get(&h, &x, "Spawn Item?");
+            if non_empty(spawn_item) {
+                a.spawn_item.push(str2spawnitem(spawn_item));
+            }
+
+            rv.push(NarrativeEvent{
+                starts_act: true, // TODO
+                criterion: criterion,
+                action: a,
+            });
+        }
+        println!("{}", get(&h, &x, "Sender"));
+
+        /*
+        */
+    }
+
+    return rv;
+}
+
+fn str2location(s: &str) -> Location {
+    match s {
+        "Park" => Location::Park,
+        "Home" => Location::Home,
+        _      => panic!("bad location >>{}<<", s),
+    }
+}
+
+fn str2spawnitem(s: &str) -> SpawnablePickup {
+    match s {
+        "Care Package" | "TV" | "Fridge" | "Pillow" | "Soap" | "Towel" | "Video Game" => SpawnablePickup{
+            // TODO FIX Kane
+            prototype: pickup::Pickup::Potplant,
+            location: (5, 5),
+            narrative_actions: action().change_sanity(10),
+        },
+        _ => panic!("bad spawn: {}", s),
+    }
+}
+
+// TODO: whitespace?
+fn non_empty(s: &str) -> bool {
+    println!("non empty '{}' ? {} - {}", s, s.len() == 0, s.len());
+    s.len() > 0
+}
+
+fn get<'a>(h: &'a HashMap<&str, usize>, r: &'a StringRecord, v: &'a str) -> &'a str {
+    let idx = h.get(v).unwrap();
+    return &r[*idx];
+}
+
+fn csv_header(rec: &StringRecord) -> HashMap<&str, usize> {
+    let mut rv = HashMap::new();
+
+    for (i, field) in rec.iter().enumerate() {
+        rv.insert(field, i);
+    }
+
+    return rv;
+}
+
+#[allow(dead_code)]
+pub fn hardcoded_main_narrative() -> Vec<NarrativeEvent> {
     return vec![
         NarrativeEvent{
             starts_act: true,
@@ -109,7 +226,8 @@ pub fn make_main_narrative() -> Vec<NarrativeEvent> {
     ];
 }
 
-pub fn make_covid_narrative() -> Vec<NarrativeEvent> {
+#[allow(dead_code)]
+pub fn hardcoded_covid_narrative() -> Vec<NarrativeEvent> {
     vec![
         NarrativeEvent{
             starts_act: true,
