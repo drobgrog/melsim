@@ -21,6 +21,7 @@ use music::{music_system, setup_music, MusicState};
 use npc::npc_system;
 use pickup::pickup_system;
 use player::{player_movement, setup_player};
+use sfx::{setup_sfx, sfx_system, SFXSystem};
 use teleportation::teleportation_system;
 
 const SCREEN_HEIGHT: f32 = 1030.0;
@@ -43,12 +44,14 @@ fn main() {
         .add_plugin(AudioPlugin)
         .init_resource::<game::GameState>()
         .init_resource::<MusicState>()
+        .init_resource::<SFXSystem>()
         .add_startup_system(ui::setup_ui)
         .add_startup_system_to_stage(StartupStage::PreStartup, pre_startup)
         .add_startup_system(setup_player)
         .add_startup_system(setup_environment)
         .add_startup_system(game::setup_state)
         .add_startup_system(setup_music)
+        .add_startup_system(setup_sfx)
         .add_system(player_movement)
         .add_system(covid_system)
         .add_system(ui::update)
@@ -63,6 +66,7 @@ fn main() {
         .add_system(npc_system)
         .add_system(pickup_system)
         .add_system(music_system)
+        .add_system(sfx_system)
         // .add_plugin(RapierRenderPlugin) // un-comment for a debug view of colliders
         .run();
 }
