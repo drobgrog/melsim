@@ -1,4 +1,5 @@
 use crate::music::MusicState;
+use crate::narrative::{NarrativeActions, NarrativeTextMessage};
 use crate::{npc::spawn_npc, teleportation::Teleporter, SCREEN_HEIGHT, SCREEN_WIDTH, TILE_SIZE};
 use crate::{
     pickup::{spawn_pickup, Pickup},
@@ -48,8 +49,17 @@ pub fn setup_environment(
 
     create_environment(Location::Home, &mut commands, &mut music_state);
 
-    spawn_npc(&mut commands, &asset_server);
-    spawn_pickup(Pickup::Potplant, [10, 13], &mut commands, &asset_server);
+    // spawn_npc(&mut commands, &asset_server);
+    spawn_pickup(
+        Pickup::Potplant,
+        [10, 13],
+        &mut commands,
+        &asset_server,
+        NarrativeActions::new_with_texts(vec![NarrativeTextMessage {
+            sender: "Bowl of Petunias".into(),
+            body: "Oh no, not again".into(),
+        }]),
+    );
 }
 
 pub fn create_environment(

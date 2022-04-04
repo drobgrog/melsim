@@ -359,7 +359,7 @@ impl GameState {
         };
     }
 
-    fn do_narrative_actions(
+    pub fn do_narrative_actions(
         &mut self,
         a: NarrativeActions,
         time: &Res<Time>,
@@ -388,6 +388,7 @@ impl GameState {
                 [s.location.0, s.location.1],
                 commands,
                 asset_server,
+                s.narrative_actions,
             );
         }
     }
