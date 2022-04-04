@@ -114,7 +114,7 @@ pub fn logic(
     pickups_query: Query<(&pickup::Pickup,)>,
     environment_query: Query<(&environment::Environment,)>,
 ) {
-    if state.sanity == 0 {
+    if state.sanity <= 0 {
         game_over(&mut commands, &mut state);
         return;
     }
