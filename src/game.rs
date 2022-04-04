@@ -11,6 +11,12 @@ use bevy_rapier2d::prelude::*;
 pub const STARTING_SANITY: i32 = 100;
 const COVID_RISK_THRESHOLD: f32 = 0.05;
 
+pub struct AreaAccessControl {
+    home: bool,
+    park: bool,
+    shops: bool,
+}
+
 #[derive(Default)]
 pub struct GameState {
     messages: Vec<TextMessage>,
@@ -19,6 +25,8 @@ pub struct GameState {
     pub date: i32,
     pub last_date: i32,
     pub last_msg_animation_time: f64,
+
+    pub area_access: AreaAccessControl,
 
     // Sanity related information
     sanity: i32,
@@ -499,6 +507,10 @@ impl GameState {
         for s in a.spawn_npc {
             npc::spawn_npc(commands, asset_server, s.location);
         }
+
+        for (l, new_val) in a.teleporter_control {
+            self.area_access.set_access(l, new_val);
+        }
     }
 
     pub fn set_covid_risk(&mut self, covid_risk: f32, time: &Res<Time>) {
@@ -560,5 +572,34 @@ impl GameState {
             .insert(ui::CovidTransitionUiTag {
                 time_left: ui::TRANSITION_LENGTH,
             });
+    }
+}
+
+impl Default for AreaAccessControl {
+    fn default() -> Self {
+        AreaAccessControl{
+            home: true,
+            park: true,
+            shops: true,
+        }
+    }
+}
+
+impl AreaAccessControl {
+    pub fn can_access(&self, l: environment::Location) -> bool {
+        match l {
+            environment::Location::Home => self.home,
+            environment::Location::Park => self.park,
+            environment::Location::Shops => self.shops,
+        }
+    }
+
+    pub fn set_access(&mut self, l: environment::Location, to: bool) {
+        println!("access control: set {:?} to {}", l, if to { "unlocked" } else { "locked" });
+        match l {
+            environment::Location::Home => self.home = to,
+            environment::Location::Park => self.park = to,
+            environment::Location::Shops => self.shops = to,
+        };
     }
 }
