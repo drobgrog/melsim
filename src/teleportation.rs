@@ -8,8 +8,8 @@ use crate::{
 use bevy::prelude::*;
 use bevy_rapier2d::{na::Translation2, prelude::*};
 
-use crate::{environment::Location, player::Player};
 use crate::npc::spawn_npc;
+use crate::{environment::Location, player::Player};
 
 #[derive(Component, Debug, Clone)]
 pub struct Teleporter {
@@ -76,9 +76,9 @@ pub fn teleport(
     create_environment(destination, commands, music_state);
     match destination {
         Location::Park => {
-                spawn_npc(commands, asset_server);
-            }
-        _ => {},
+            // spawn_npc(commands, asset_server);
+        }
+        _ => {}
     };
 
     // Change the sprite
