@@ -157,12 +157,7 @@ fn game_over(
         );
     }
 
-    if key.just_pressed(KeyCode::Space) {
-        state.game_over = false;
-        let game_over_image_entity = state.game_over_image_entity.take().unwrap();
-        commands.entity(game_over_image_entity).despawn();
-        state.setup(asset_server);
-    }
+    // Do nothing, and wait for the player to close the window.
 }
 
 // How often should we lose (/gain) sanity just for existing?
