@@ -39,9 +39,9 @@ pub fn pickup_system(
                 collect_pickup(pickup, pickup_entity, collector.entity(), &mut commands);
                 let (player_entity, _, player_transform) = player_query.single();
 
-                sfx_system.play_sfx(SoundEffect::Pickup);
-
                 if collector.entity() == player_entity {
+                    sfx_system.play_sfx(SoundEffect::Pickup);
+
                     game_state.do_narrative_actions(
                         narrative_actions.clone(),
                         &time,

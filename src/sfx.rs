@@ -29,7 +29,11 @@ pub enum SoundEffect {
     CashRegister,
 }
 
-pub fn setup_sfx(mut sfx_system: ResMut<SFXSystem>, asset_server: Res<AssetServer>) {
+pub fn setup_sfx(
+    mut sfx_system: ResMut<SFXSystem>,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
+) {
     sfx_system.text = asset_server.load("sfx/01 text.mp3");
     sfx_system.sanity_up = asset_server.load("sfx/02 sanity up.mp3");
     sfx_system.sanity_down = asset_server.load("sfx/03 sanity down.mp3");
@@ -37,6 +41,7 @@ pub fn setup_sfx(mut sfx_system: ResMut<SFXSystem>, asset_server: Res<AssetServe
     sfx_system.entrance_exit = asset_server.load("sfx/05 entrance_exit.mp3");
     sfx_system.cash_register = asset_server.load("sfx/06 cash register.mp3");
     sfx_system.channel = AudioChannel::new("sfx".to_owned());
+    audio.set_volume_in_channel(0.1, &sfx_system.channel);
 }
 
 pub fn sfx_system(audio: Res<Audio>, mut sfx_system: ResMut<SFXSystem>) {

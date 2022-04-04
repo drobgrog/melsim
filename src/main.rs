@@ -12,10 +12,7 @@ mod ui;
 use crate::covid::covid_system;
 use bevy::prelude::*;
 use bevy_kira_audio::AudioPlugin;
-use bevy_rapier2d::{
-    physics::{NoUserData, RapierConfiguration, RapierPhysicsPlugin},
-    render::RapierRenderPlugin,
-};
+use bevy_rapier2d::physics::{NoUserData, RapierConfiguration, RapierPhysicsPlugin};
 use environment::setup_environment;
 use music::{music_system, setup_music, MusicState};
 use npc::npc_system;
