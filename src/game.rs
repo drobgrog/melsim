@@ -154,7 +154,7 @@ fn game_over(commands: &mut Commands, state: &mut GameState) {
                 .spawn_bundle(SpriteBundle {
                     texture: state.game_over_image.clone(),
                     transform: Transform {
-                        translation: [0., 0., 100.].into(),
+                        translation: [0., -15., 100.].into(),
                         ..Default::default()
                     },
                     ..Default::default()
@@ -250,7 +250,9 @@ impl GameState {
             // Containing box
             let ct_box_height = sender_font_size
                 + line_spacing
-                + (laid_out_message.len() as f32 * (line_spacing + message_font_size));
+                + (laid_out_message.len() as f32 * (line_spacing + message_font_size))
+                + 4.
+                ;
 
             if height_of_first == 0. {
                 height_of_first = ct_box_height + inter_message_spacing;
@@ -277,7 +279,7 @@ impl GameState {
             ety.with_children(|parent| {
                 // We're going from the bottom so spawn the message first, then the sender. Note that
                 // lines are drawn bottom up
-                let mut inside_bottom = -ct_box_height / 2. + message_font_size / 2.;
+                let mut inside_bottom = -ct_box_height / 2. + message_font_size / 2. + 2.;
                 for l in laid_out_message.iter().rev() {
                     parent.spawn_bundle(Text2dBundle {
                         text: Text::with_section(l.clone(), text_style_message.clone(), align),
