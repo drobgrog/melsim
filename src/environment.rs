@@ -1,3 +1,4 @@
+use crate::music::MusicState;
 use crate::{npc::spawn_npc, teleportation::Teleporter, SCREEN_HEIGHT, SCREEN_WIDTH, TILE_SIZE};
 use crate::{
     pickup::{spawn_pickup, Pickup},
@@ -27,6 +28,7 @@ impl Environment {
 pub fn setup_environment(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    mut music_state: ResMut<MusicState>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     let texture_handle = asset_server.load("environment.png");
@@ -44,13 +46,17 @@ pub fn setup_environment(
         })
         .insert(Environment::new(Location::Home));
 
-    create_environment(Location::Home, &mut commands);
+    create_environment(Location::Home, &mut commands, &mut music_state);
 
     spawn_npc(&mut commands, &asset_server);
     spawn_pickup(Pickup::Potplant, [10, 13], &mut commands, &asset_server);
 }
 
-pub fn create_environment(location: Location, commands: &mut Commands) {
+pub fn create_environment(
+    location: Location,
+    commands: &mut Commands,
+    music_state: &mut ResMut<MusicState>,
+) {
     let (environment_colliders, mut teleporters) =
         get_environment_collider_and_teleporters(location);
 
@@ -61,6 +67,13 @@ pub fn create_environment(location: Location, commands: &mut Commands) {
     for (environment_collider, teleporter) in teleporters.drain(..) {
         add_teleporter(commands, &environment_collider, teleporter);
     }
+
+    let music_track_index = match location {
+        Location::Home => 0,
+        Location::Park => 1,
+        Location::Supermarket => 2,
+    };
+    music_state.switch_tracks(music_track_index);
 }
 
 fn get_environment_collider_and_teleporters(
