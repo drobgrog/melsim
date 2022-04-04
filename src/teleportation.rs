@@ -3,12 +3,12 @@ use crate::{
         create_environment, tile_coords_to_screen_pos, Environment, EnvironmentCollider,
     },
     music::MusicState,
+    sfx::{SFXSystem, SoundEffect},
     TILE_SIZE,
 };
 use bevy::prelude::*;
 use bevy_rapier2d::{na::Translation2, prelude::*};
 
-use crate::npc::spawn_npc;
 use crate::{environment::Location, player::Player};
 
 #[derive(Component, Debug, Clone)]
@@ -36,6 +36,7 @@ pub fn teleportation_system(
     environment_collider_query: Query<Entity, With<EnvironmentCollider>>,
     mut music_state: ResMut<MusicState>,
     asset_server: Res<AssetServer>,
+    mut sfx_system: ResMut<SFXSystem>,
 ) {
     let (player_entity, mut player_position) = player_info.single_mut();
 
@@ -45,6 +46,7 @@ pub fn teleportation_system(
             narrow_phase.intersections_with(teleporter_entity.handle())
         {
             if collider_a.entity() == player_entity || collider_b.entity() == player_entity {
+                sfx_system.play_sfx(SoundEffect::EntranceExit);
                 if intersecting {
                     teleport(
                         teleporter,

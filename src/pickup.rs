@@ -2,8 +2,12 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::{
-    environment::tile_coords_to_screen_pos, game::GameState, narrative::NarrativeActions,
-    player::Player, TILE_SIZE,
+    environment::tile_coords_to_screen_pos,
+    game::GameState,
+    narrative::NarrativeActions,
+    player::Player,
+    sfx::{SFXSystem, SoundEffect},
+    TILE_SIZE,
 };
 
 #[derive(Component, Debug, Clone)]
@@ -19,6 +23,7 @@ pub fn pickup_system(
     asset_server: Res<AssetServer>,
     mut game_state: ResMut<GameState>,
     player_query: Query<(Entity, &Player, &Transform)>,
+    mut sfx_system: ResMut<SFXSystem>,
 ) {
     // For each pickup - ask did someone collide with us?
     for (pickup_entity, pickup, narrative_actions) in pickup_query.iter() {
@@ -35,12 +40,15 @@ pub fn pickup_system(
                 let (player_entity, _, player_transform) = player_query.single();
 
                 if collector.entity() == player_entity {
+                    sfx_system.play_sfx(SoundEffect::Pickup);
+
                     game_state.do_narrative_actions(
                         narrative_actions.clone(),
                         &time,
                         &mut commands,
                         &asset_server,
                         player_transform,
+                        &mut sfx_system,
                     );
                 }
             }
