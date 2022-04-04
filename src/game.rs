@@ -217,12 +217,12 @@ impl GameState {
         let text_style_sender = TextStyle {
             font: asset_server.load("fonts/monofonto.ttf"),
             font_size: sender_font_size,
-            color: Color::rgba(1., 0., 0., 1.),
+            color: Color::rgba(0., 0., 0., 1.),
         };
         let text_style_message = TextStyle {
             font: asset_server.load("fonts/monofonto.ttf"),
             font_size: message_font_size,
-            color: Color::rgba(1., 0., 0., 1.),
+            color: Color::rgba(0., 0., 0., 1.),
         };
         let align = TextAlignment {
             vertical: VerticalAlign::Center,
@@ -261,7 +261,7 @@ impl GameState {
             let ctr_bottom = bottom + ct_box_height / 2.;
             let mut ety = commands.spawn_bundle(SpriteBundle {
                 sprite: Sprite {
-                    color: Color::rgb(0.8, 1.0, 0.8),
+                    color: Color::rgb(175./255., 233./255., 198./255.),
                     custom_size: Some(Vec2::new(message_bubble_width, ct_box_height)),
                     ..Default::default()
                 },
@@ -277,6 +277,24 @@ impl GameState {
             });
 
             ety.with_children(|parent| {
+                // pretty bubble edges
+                parent.spawn_bundle(SpriteBundle{
+                    texture: asset_server.load("ui/top_bubble.png"),
+                    transform: Transform {
+                        translation: [0., ct_box_height / 2. - 50./2., 11.5].into(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                });
+                parent.spawn_bundle(SpriteBundle{
+                    texture: asset_server.load("ui/bottom_bubble.png"),
+                    transform: Transform {
+                        translation: [0., -ct_box_height / 2. + 14./2., 11.55].into(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                });
+
                 // We're going from the bottom so spawn the message first, then the sender. Note that
                 // lines are drawn bottom up
                 let mut inside_bottom = -ct_box_height / 2. + message_font_size / 2. + 2.;
@@ -284,7 +302,7 @@ impl GameState {
                     parent.spawn_bundle(Text2dBundle {
                         text: Text::with_section(l.clone(), text_style_message.clone(), align),
                         transform: Transform {
-                            translation: Vec3::new(message_padding_left, inside_bottom, 11.),
+                            translation: Vec3::new(message_padding_left, inside_bottom, 11.6),
                             ..Default::default()
                         },
                         ..Default::default()
@@ -296,7 +314,7 @@ impl GameState {
                 parent.spawn_bundle(Text2dBundle {
                     text: Text::with_section(x.sender.clone(), text_style_sender.clone(), align),
                     transform: Transform {
-                        translation: Vec3::new(sender_ofs, inside_bottom, 11.),
+                        translation: Vec3::new(sender_ofs, inside_bottom, 11.6),
                         ..Default::default()
                     },
                     ..Default::default()
