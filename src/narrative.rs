@@ -1,3 +1,5 @@
+use bevy::prelude::Component;
+
 use crate::pickup;
 
 pub struct NarrativeEvent {
@@ -7,15 +9,38 @@ pub struct NarrativeEvent {
 }
 
 pub enum NarrativeCriterion {
-    ElapsedRel(f64),    // at least this many seconds have elasped since last event
-    ClearedAll,         // all items in the environment must be cleared
+    ElapsedRel(f64), // at least this many seconds have elasped since last event
+    ClearedAll,      // all items in the environment must be cleared
 }
 
-#[derive(Default,Clone)]
+#[derive(Default, Clone, Component)]
 pub struct NarrativeActions {
     pub send_texts: Vec<NarrativeTextMessage>,
-    pub change_sanity: Option<i32>,  // Some(0) produces a literal '0' indicator
+    pub change_sanity: Option<i32>, // Some(0) produces a literal '0' indicator
     pub spawn_item: Vec<SpawnablePickup>,
+}
+
+impl NarrativeActions {
+    pub fn new_with_texts(send_texts: Vec<NarrativeTextMessage>) -> NarrativeActions {
+        NarrativeActions {
+            send_texts,
+            ..Default::default()
+        }
+    }
+
+    pub fn new_with_sanity(change_sanity: Option<i32>) -> NarrativeActions {
+        NarrativeActions {
+            change_sanity,
+            ..Default::default()
+        }
+    }
+
+    pub fn new_with_pickup(spawn_item: Vec<SpawnablePickup>) -> NarrativeActions {
+        NarrativeActions {
+            spawn_item,
+            ..Default::default()
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -28,6 +53,7 @@ pub struct NarrativeTextMessage {
 pub struct SpawnablePickup {
     pub prototype: pickup::Pickup,
     pub location: (usize, usize),
+    pub narrative_actions: NarrativeActions,
 }
 
 pub fn make_main_narrative() -> Vec<NarrativeEvent> {
@@ -58,7 +84,8 @@ pub fn make_main_narrative() -> Vec<NarrativeEvent> {
             criterion: NarrativeCriterion::ElapsedRel(2.5),
             action: action().spawn_pickup(
                 pickup::Pickup::Potplant,
-                (5, 5)
+                (5, 5),
+                Default::default(),
             ),
         },
     ];
@@ -69,19 +96,17 @@ pub fn make_covid_narrative() -> Vec<NarrativeEvent> {
 }
 
 fn action() -> NarrativeActions {
-    NarrativeActions{
+    NarrativeActions {
         ..Default::default()
     }
 }
 
 impl NarrativeActions {
     fn send_text(mut self, sender: &str, body: &str) -> Self {
-        self.send_texts.push(
-            NarrativeTextMessage{
-                sender: String::from(sender),
-                body: String::from(body),
-            }
-        );
+        self.send_texts.push(NarrativeTextMessage {
+            sender: String::from(sender),
+            body: String::from(body),
+        });
         self
     }
 
@@ -90,13 +115,17 @@ impl NarrativeActions {
         self
     }
 
-    fn spawn_pickup(mut self, what: pickup::Pickup, at: (usize, usize)) -> Self {
-        self.spawn_item.push(
-            SpawnablePickup{
-                prototype: what,
-                location: at,
-            }
-        );
+    fn spawn_pickup(
+        mut self,
+        what: pickup::Pickup,
+        at: (usize, usize),
+        narrative_actions: NarrativeActions,
+    ) -> Self {
+        self.spawn_item.push(SpawnablePickup {
+            prototype: what,
+            location: at,
+            narrative_actions,
+        });
         self
     }
 }

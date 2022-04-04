@@ -319,7 +319,7 @@ impl GameState {
         time: &Res<Time>,
         commands: &mut Commands,
         asset_server: &Res<AssetServer>,
-        player: &Query<(&Player, &Transform)>,
+        player_query: &Query<(&Player, &Transform)>,
     ) {
         if self.in_covid_narrative && self.next_covid_narrative_id >= self.covid_narrative.len() {
             // end of the covid narrative, so switch back to the regular narrative
@@ -334,12 +334,13 @@ impl GameState {
             println!("Uh-oh, got to the end of the narrative!");
         } else {
             if self.criterion_met(&self.main_narrative[self.next_narrative_id].criterion, time) {
+                let (_, player_tx) = player_query.single();
                 self.do_narrative_actions(
                     self.main_narrative[self.next_narrative_id].action.clone(),
                     time,
                     commands,
                     asset_server,
-                    player,
+                    player_tx,
                 );
                 if self.main_narrative[self.next_narrative_id].starts_act {
                     self.narrative_start_of_act = self.next_narrative_id;
@@ -359,17 +360,16 @@ impl GameState {
         };
     }
 
-    fn do_narrative_actions(
+    pub fn do_narrative_actions(
         &mut self,
         a: NarrativeActions,
         time: &Res<Time>,
         commands: &mut Commands,
         asset_server: &Res<AssetServer>,
-        player: &Query<(&Player, &Transform)>,
+        player_tx: &Transform,
     ) {
         if let Some(ds) = a.change_sanity {
             self.sanity += ds;
-            let (_, player_tx) = player.single();
             ui::spawn_sanity_number(
                 ds,
                 commands,
@@ -388,6 +388,7 @@ impl GameState {
                 [s.location.0, s.location.1],
                 commands,
                 asset_server,
+                s.narrative_actions,
             );
         }
     }

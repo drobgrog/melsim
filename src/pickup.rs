@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{environment::tile_coords_to_screen_pos, TILE_SIZE};
+use crate::{
+    environment::tile_coords_to_screen_pos, game::GameState, narrative::NarrativeActions,
+    player::Player, TILE_SIZE,
+};
 
 #[derive(Component, Debug, Clone)]
 pub enum Pickup {
@@ -11,20 +14,35 @@ pub enum Pickup {
 pub fn pickup_system(
     mut commands: Commands,
     narrow_phase: Res<NarrowPhase>,
-    pickup_query: Query<(Entity, &Pickup)>,
+    pickup_query: Query<(Entity, &Pickup, &NarrativeActions)>,
+    time: Res<Time>,
+    asset_server: Res<AssetServer>,
+    mut game_state: ResMut<GameState>,
+    player_query: Query<(Entity, &Player, &Transform)>,
 ) {
     // For each pickup - ask did someone collide with us?
-    for (pickup_entity, pickup) in pickup_query.iter() {
+    for (collector_entity, pickup, narrative_actions) in pickup_query.iter() {
         for (collider_a, collider_b, intersecting) in
-            narrow_phase.intersections_with(pickup_entity.handle())
+            narrow_phase.intersections_with(collector_entity.handle())
         {
-            let collector = if collider_a.entity() == pickup_entity {
+            let collector = if collider_a.entity() == collector_entity {
                 collider_b
             } else {
                 collider_a
             };
             if intersecting {
-                collect_pickup(pickup, pickup_entity, collector.entity(), &mut commands);
+                collect_pickup(pickup, collector_entity, collector.entity(), &mut commands);
+                let (player_entity, _, player_transform) = player_query.single();
+
+                if collector_entity == player_entity {
+                    game_state.do_narrative_actions(
+                        narrative_actions.clone(),
+                        &time,
+                        &mut commands,
+                        &asset_server,
+                        player_transform,
+                    );
+                }
             }
         }
     }
@@ -35,6 +53,7 @@ pub fn spawn_pickup(
     location: [usize; 2],
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
+    narrative_actions: NarrativeActions,
 ) {
     let texture = get_image(&pickup, asset_server);
     let (width, height) = get_dimensions(&pickup);
@@ -64,6 +83,7 @@ pub fn spawn_pickup(
             ..Default::default()
         })
         .insert(ColliderPositionSync::Discrete)
+        .insert(narrative_actions)
         .insert(pickup);
 }
 
