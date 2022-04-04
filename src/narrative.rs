@@ -98,7 +98,7 @@ pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
         let criterion = if non_empty(time) && non_time_condition.is_some() {
             // Special case - if there is a time and other criteria, generate dummy criterion
             rv.push(NarrativeEvent {
-                starts_act: false, // TODO
+                starts_act: false, // TODO -- can safely be left because of how the script works
                 criterion: non_time_condition.unwrap(),
                 action: action(),
             });
@@ -162,7 +162,7 @@ pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
         }
 
         rv.push(NarrativeEvent {
-            starts_act: true, // TODO
+            starts_act: non_empty(get_default(&h, &x, "Start of act?", "")),
             criterion: criterion,
             action: a,
         });
@@ -203,6 +203,15 @@ fn non_empty(s: &str) -> bool {
 fn get<'a>(h: &'a HashMap<&str, usize>, r: &'a StringRecord, v: &'a str) -> &'a str {
     let idx = h.get(v).unwrap();
     return &r[*idx];
+}
+
+fn get_default<'a>(h: &'a HashMap<&str, usize>, r: &'a StringRecord, v: &'a str, default: &'a str) -> &'a str {
+    let idx = h.get(v);
+    if let Some(idx) = idx {
+        return &r[*idx];
+    } else {
+        return default;
+    }
 }
 
 fn csv_header(rec: &StringRecord) -> HashMap<&str, usize> {
