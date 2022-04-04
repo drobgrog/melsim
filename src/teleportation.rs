@@ -76,7 +76,7 @@ fn teleport(
     sprite.index = match destination {
         Location::Home => 0,
         Location::Park => 1,
-        Location::Supermarket => 2,
+        Location::Shops => 2,
     };
 
     // Then move the player

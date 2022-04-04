@@ -12,7 +12,7 @@ use bevy_rapier2d::prelude::*;
 pub enum Location {
     Home,
     Park,
-    Supermarket,
+    Shops,
 }
 
 #[derive(Debug, Clone, Component)]
@@ -81,7 +81,7 @@ pub fn create_environment(
     let music_track_index = match location {
         Location::Home => 0,
         Location::Park => 1,
-        Location::Supermarket => 2,
+        Location::Shops => 2,
     };
     music_state.switch_tracks(music_track_index);
 }
@@ -112,14 +112,36 @@ fn get_environment_collider_and_teleporters(
         }
         Location::Park => {
             let environment_colliders = vec![EnvironmentCollider::new(0, 15, 11, 4)];
-            let teleporters = vec![(
-                EnvironmentCollider::new(1, 1, 3, 1),
-                Teleporter::new(Location::Home, [2, 15]),
-            )];
+            let teleporters = vec![
+                (
+                    EnvironmentCollider::new(1, 1, 3, 1),
+                    Teleporter::new(Location::Home, [2, 15]),
+                ),
+                (
+                    EnvironmentCollider::new(18, 14, 2, 4),
+                    Teleporter::new(Location::Shops, [2, 2]),
+                ),
+            ];
 
             (environment_colliders, teleporters)
         }
-        Location::Supermarket => todo!(),
+        Location::Shops => {
+            let environment_colliders = vec![
+            // EnvironmentCollider::new(0, 15, 11, 4)
+            ];
+            let teleporters = vec![
+                (
+                    EnvironmentCollider::new(0, 10, 1, 3),
+                    Teleporter::new(Location::Park, [16, 14]),
+                ),
+                (
+                    EnvironmentCollider::new(0, 16, 1, 3),
+                    Teleporter::new(Location::Park, [16, 14]),
+                ),
+            ];
+
+            (environment_colliders, teleporters)
+        }
     }
 }
 
