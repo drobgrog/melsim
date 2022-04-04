@@ -74,7 +74,7 @@ pub fn spawn_sanity_number(
     });
 }
 
-pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, state: Res<GameState>) {
+pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(UiCameraBundle::default());
     // The bundle holding the status bar i.e. the date
     commands
@@ -172,7 +172,7 @@ pub fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, state: R
 
 
     // The white zone covering the bar. Don't ask.
-    let desired_width = mhb_bar_filling_width() * ( (100 - state.sanity) as f32 / 100.);
+    let desired_width = mhb_bar_filling_width() * ( (100 - STARTING_SANITY) as f32 / 100.);
     commands.spawn_bundle(SpriteBundle{
         transform: Transform {
             translation: [
