@@ -1,8 +1,9 @@
-use crate::{narrative, ui, SCREEN_HEIGHT, SCREEN_WIDTH};
-use crate::narrative::{NarrativeEvent,NarrativeCriterion,NarrativeActions};
-use bevy::prelude::*;
-use crate::player::Player;
+use crate::music::MusicState;
+use crate::narrative::{NarrativeActions, NarrativeCriterion, NarrativeEvent};
 use crate::pickup;
+use crate::player::Player;
+use crate::{narrative, ui, SCREEN_HEIGHT, SCREEN_WIDTH};
+use bevy::prelude::*;
 
 #[derive(Default)]
 pub struct GameState {
@@ -44,13 +45,14 @@ pub fn debug_keys(
     mut commands: Commands,
     key: Res<Input<KeyCode>>,
     mut state: ResMut<GameState>,
+    mut music_state: ResMut<MusicState>,
     time: Res<Time>,
     asset_server: Res<AssetServer>,
     player: Query<(&Player, &Transform)>,
 ) {
     if key.just_pressed(KeyCode::C) {
         state.show_covid_risk = !state.show_covid_risk;
-        state.last_covid_risk_shown  = time.seconds_since_startup();
+        state.last_covid_risk_shown = time.seconds_since_startup();
     }
     if key.just_pressed(KeyCode::V) {
         state.covid_risk += 0.1;
@@ -60,11 +62,30 @@ pub fn debug_keys(
     }
     if key.just_pressed(KeyCode::P) {
         let (_, player_tx) = player.single();
-        ui::spawn_sanity_number(3, &mut commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
+        ui::spawn_sanity_number(
+            3,
+            &mut commands,
+            asset_server.load("fonts/monofonto.ttf"),
+            player_tx.translation,
+        );
     }
     if key.just_pressed(KeyCode::O) {
         let (_, player_tx) = player.single();
-        ui::spawn_sanity_number(-7, &mut commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
+        ui::spawn_sanity_number(
+            -7,
+            &mut commands,
+            asset_server.load("fonts/monofonto.ttf"),
+            player_tx.translation,
+        );
+    }
+    if key.just_pressed(KeyCode::M) {
+        println!("M PRESSED");
+        let next_index = if music_state.current_track_index == 0 {
+            1
+        } else {
+            0
+        };
+        music_state.switch_tracks(next_index);
     }
 }
 
@@ -92,25 +113,30 @@ pub fn logic(
     let sanity_change = state.update_sanity(time.seconds_since_startup());
     if sanity_change != 0 {
         let (_, player_tx) = player.single();
-        ui::spawn_sanity_number(sanity_change, &mut commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
+        ui::spawn_sanity_number(
+            sanity_change,
+            &mut commands,
+            asset_server.load("fonts/monofonto.ttf"),
+            player_tx.translation,
+        );
     }
 
-    state.run_narrative(
-        &time,
-        &mut commands,
-        &asset_server,
-        &player,
-    );
+    state.run_narrative(&time, &mut commands, &asset_server, &player);
 }
 
 // How often should we lose (/gain) sanity just for existing?
-fn time_for_sanity_loss() -> f64 { 5. }
+fn time_for_sanity_loss() -> f64 {
+    5.
+}
 
 // How much sanity do we lose then?
-fn sanity_loss_tick() -> i32 { -1 }
+fn sanity_loss_tick() -> i32 {
+    -1
+}
 
 impl GameState {
-    fn add_text_message(&mut self,
+    fn add_text_message(
+        &mut self,
         sender: &str,
         msg: &str,
         time: &Res<Time>,
@@ -164,8 +190,11 @@ impl GameState {
         let mut height_of_first = 0.;
 
         for x in &mut self.messages.iter_mut().rev() {
-            let laid_out_message =
-                ui::lay_out_text_monofonto(message_font_size, message_bubble_width - message_padding_right, &x.text);
+            let laid_out_message = ui::lay_out_text_monofonto(
+                message_font_size,
+                message_bubble_width - message_padding_right,
+                &x.text,
+            );
 
             // Containing box
             let ct_box_height = sender_font_size
@@ -189,7 +218,7 @@ impl GameState {
                 },
                 ..Default::default()
             });
-            ety.insert(ui::TextMessageTag{
+            ety.insert(ui::TextMessageTag {
                 bottom_from: ctr_bottom - height_of_first,
                 bottom_to: ctr_bottom,
             });
@@ -235,8 +264,7 @@ impl GameState {
         }
     }
 
-    fn new_day(&mut self) {
-    }
+    fn new_day(&mut self) {}
 
     // Returns the change, if any (so it can be displayed to the user)
     fn update_sanity(&mut self, time_since_start: f64) -> i32 {
@@ -248,11 +276,12 @@ impl GameState {
         return 0;
     }
 
-    fn run_narrative(&mut self,
+    fn run_narrative(
+        &mut self,
         time: &Res<Time>,
         commands: &mut Commands,
         asset_server: &Res<AssetServer>,
-        player: &Query<(&Player, &Transform)>
+        player: &Query<(&Player, &Transform)>,
     ) {
         if self.in_covid_narrative && self.next_covid_narrative_id >= self.covid_narrative.len() {
             // end of the covid narrative, so switch back to the regular narrative
@@ -285,36 +314,43 @@ impl GameState {
 
     fn criterion_met(&self, c: &NarrativeCriterion, time: &Res<Time>) -> bool {
         return match c {
-            NarrativeCriterion::ElapsedRel(v) => time.seconds_since_startup() - self.narrative_last_event > *v,
+            NarrativeCriterion::ElapsedRel(v) => {
+                time.seconds_since_startup() - self.narrative_last_event > *v
+            }
             NarrativeCriterion::ClearedAll => panic!(" all cleareD?"),
         };
     }
 
-    fn do_narrative_actions(&mut self,
+    fn do_narrative_actions(
+        &mut self,
         a: NarrativeActions,
         time: &Res<Time>,
         commands: &mut Commands,
         asset_server: &Res<AssetServer>,
-        player: &Query<(&Player, &Transform)>
+        player: &Query<(&Player, &Transform)>,
     ) {
         if let Some(ds) = a.change_sanity {
             self.sanity += ds;
             let (_, player_tx) = player.single();
-            ui::spawn_sanity_number(ds, commands, asset_server.load("fonts/monofonto.ttf"), player_tx.translation);
-        }
-
-        for m in a.send_texts {
-            self.add_text_message(
-                &m.sender,
-                &m.body,
-                time,
+            ui::spawn_sanity_number(
+                ds,
                 commands,
-                asset_server,
+                asset_server.load("fonts/monofonto.ttf"),
+                player_tx.translation,
             );
         }
 
+        for m in a.send_texts {
+            self.add_text_message(&m.sender, &m.body, time, commands, asset_server);
+        }
+
         for s in a.spawn_item {
-            pickup::spawn_pickup(s.prototype, [s.location.0, s.location.1], commands, asset_server);
+            pickup::spawn_pickup(
+                s.prototype,
+                [s.location.0, s.location.1],
+                commands,
+                asset_server,
+            );
         }
     }
 }

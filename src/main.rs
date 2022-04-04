@@ -1,16 +1,19 @@
 pub mod covid;
 pub mod environment;
 mod game;
+pub mod music;
+mod narrative;
 pub mod npc;
 pub mod pickup;
 mod player;
 pub mod teleportation;
 mod ui;
-mod narrative;
 use crate::covid::covid_system;
 use bevy::prelude::*;
+use bevy_kira_audio::AudioPlugin;
 use bevy_rapier2d::physics::{NoUserData, RapierConfiguration, RapierPhysicsPlugin};
 use environment::setup_environment;
+use music::{music_system, setup_music, MusicState};
 use npc::npc_system;
 use pickup::pickup_system;
 use player::{player_movement, setup_player};
@@ -33,12 +36,15 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(255.0, 255.0, 255.0)))
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_plugin(AudioPlugin)
         .init_resource::<game::GameState>()
+        .init_resource::<MusicState>()
         .add_startup_system(ui::setup_ui)
         .add_startup_system_to_stage(StartupStage::PreStartup, pre_startup)
         .add_startup_system(setup_player)
         .add_startup_system(setup_environment)
         .add_startup_system(game::setup_state)
+        .add_startup_system(setup_music)
         .add_system(player_movement)
         .add_system(covid_system)
         .add_system(ui::update)
@@ -51,6 +57,7 @@ fn main() {
         .add_system(game::debug_keys)
         .add_system(npc_system)
         .add_system(pickup_system)
+        .add_system(music_system)
         // .add_plugin(RapierRenderPlugin) // un-comment for a debug view of colliders
         .run();
 }
