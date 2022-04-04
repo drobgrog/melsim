@@ -8,7 +8,7 @@ use crate::{
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Location {
     Home,
     Park,

@@ -111,6 +111,7 @@ pub fn logic(
     asset_server: Res<AssetServer>,
     player: Query<(&Player, &Transform)>,
     pickups_query: Query<(&pickup::Pickup,)>,
+    environment_query: Query<(&environment::Environment,)>,
 ) {
     if state.sanity == 0 {
         game_over(&mut commands, &mut state);
@@ -140,6 +141,7 @@ pub fn logic(
         &asset_server,
         &player,
         &pickups_query,
+        &environment_query,
     );
 }
 
@@ -331,6 +333,7 @@ impl GameState {
         asset_server: &Res<AssetServer>,
         player_query: &Query<(&Player, &Transform)>,
         pickups_query: &Query<(&pickup::Pickup,)>,
+        environment_query: &Query<(&environment::Environment,)>,
     ) {
         if self.in_covid_narrative && self.next_covid_narrative_id >= self.covid_narrative.len() {
             // end of the covid narrative, so switch back to the regular narrative
@@ -343,6 +346,7 @@ impl GameState {
             if self.criterion_met(
                 &self.covid_narrative[self.next_covid_narrative_id].criterion,
                 pickups_query,
+                environment_query,
                 time,
             ) {
                 let (_, player_tx) = player_query.single();
@@ -367,6 +371,7 @@ impl GameState {
             if self.criterion_met(
                 &self.main_narrative[self.next_narrative_id].criterion,
                 pickups_query,
+                environment_query,
                 time,
             ) {
                 let (_, player_tx) = player_query.single();
@@ -389,6 +394,7 @@ impl GameState {
     fn criterion_met(&self,
         c: &NarrativeCriterion,
         pickups_query: &Query<(&pickup::Pickup,)>,
+        environment_query: &Query<(&environment::Environment,)>,
         time: &Res<Time>
     ) -> bool {
         return match c {
@@ -397,6 +403,10 @@ impl GameState {
             }
             NarrativeCriterion::ClearedAll => {
                 pickups_query.is_empty()
+            }
+            NarrativeCriterion::InEnvironment(l) => {
+                let (current_env,) = environment_query.single();
+                &current_env.location == l
             }
         };
     }
