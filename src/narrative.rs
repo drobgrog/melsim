@@ -1,6 +1,7 @@
 use bevy::prelude::Component;
 
 use crate::pickup;
+use crate::environment::Location;
 
 pub struct NarrativeEvent {
     pub starts_act: bool,
@@ -9,8 +10,9 @@ pub struct NarrativeEvent {
 }
 
 pub enum NarrativeCriterion {
-    ElapsedRel(f64), // at least this many seconds have elasped since last event
-    ClearedAll,      // all items in the environment must be cleared
+    ElapsedRel(f64),         // at least this many seconds have elasped since last event
+    ClearedAll,              // all items in the environment must be cleared
+    InEnvironment(Location), // current location is here
 }
 
 #[derive(Default, Clone, Component)]
@@ -86,6 +88,22 @@ pub fn make_main_narrative() -> Vec<NarrativeEvent> {
                 pickup::Pickup::Potplant,
                 (5, 5),
                 Default::default(),
+            ),
+        },
+        NarrativeEvent{
+            starts_act: false,
+            criterion: NarrativeCriterion::ClearedAll,
+            action: action().send_text(
+                "The Game",
+                "You picked up the thing|Now go to the park",
+            ),
+        },
+        NarrativeEvent{
+            starts_act: false,
+            criterion: NarrativeCriterion::InEnvironment(Location::Park),
+            action: action().send_text(
+                "The Game",
+                "You have gone to the park. You are good at directions.",
             ),
         },
     ];
