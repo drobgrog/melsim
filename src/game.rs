@@ -108,10 +108,9 @@ pub fn logic(
     time: Res<Time>,
     asset_server: Res<AssetServer>,
     player: Query<(&Player, &Transform)>,
-    key: Res<Input<KeyCode>>,
 ) {
     if state.sanity == 0 {
-        game_over(&mut commands, &mut state, &key, &asset_server);
+        game_over(&mut commands, &mut state);
         return;
     }
 
@@ -135,12 +134,7 @@ pub fn logic(
     state.run_narrative(&time, &mut commands, &asset_server, &player);
 }
 
-fn game_over(
-    commands: &mut Commands,
-    state: &mut GameState,
-    key: &Res<Input<KeyCode>>,
-    asset_server: &Res<AssetServer>,
-) {
+fn game_over(commands: &mut Commands, state: &mut GameState) {
     if !state.game_over {
         state.game_over = true;
         state.game_over_image_entity = Some(
