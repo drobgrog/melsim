@@ -57,7 +57,7 @@ pub fn teleportation_system(
     }
 }
 
-fn teleport(
+pub fn teleport(
     teleporter: &Teleporter,
     player_position: &mut Mut<RigidBodyPositionComponent>,
     environment_query: &mut Query<(&mut TextureAtlasSprite, &mut Environment)>,

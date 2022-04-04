@@ -49,7 +49,7 @@ pub fn setup_environment(
 
     create_environment(Location::Home, &mut commands, &mut music_state);
 
-    // spawn_npc(&mut commands, &asset_server);
+    //spawn_npc(&mut commands, &asset_server);
     spawn_pickup(
         Pickup::Potplant,
         [10, 13],
