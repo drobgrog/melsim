@@ -1,6 +1,7 @@
 use bevy::prelude::Component;
 
 use crate::pickup;
+use crate::environment::Location;
 
 pub struct NarrativeEvent {
     pub starts_act: bool,
@@ -9,8 +10,9 @@ pub struct NarrativeEvent {
 }
 
 pub enum NarrativeCriterion {
-    ElapsedRel(f64), // at least this many seconds have elasped since last event
-    ClearedAll,      // all items in the environment must be cleared
+    ElapsedRel(f64),         // at least this many seconds have elasped since last event
+    ClearedAll,              // all items in the environment must be cleared
+    InEnvironment(Location), // current location is here
 }
 
 #[derive(Default, Clone, Component)]
@@ -88,11 +90,44 @@ pub fn make_main_narrative() -> Vec<NarrativeEvent> {
                 Default::default(),
             ),
         },
+        NarrativeEvent{
+            starts_act: false,
+            criterion: NarrativeCriterion::ClearedAll,
+            action: action().send_text(
+                "The Game",
+                "You picked up the thing|Now go to the park",
+            ),
+        },
+        NarrativeEvent{
+            starts_act: false,
+            criterion: NarrativeCriterion::InEnvironment(Location::Park),
+            action: action().send_text(
+                "The Game",
+                "You have gone to the park. You are good at directions.",
+            ),
+        },
     ];
 }
 
 pub fn make_covid_narrative() -> Vec<NarrativeEvent> {
-    vec![]
+    vec![
+        NarrativeEvent{
+            starts_act: true,
+            criterion: NarrativeCriterion::ElapsedRel(1.0),
+            action: action().send_text(
+                "Department of Health",
+                "You have been exposed to Covid as a close contact with another person. You must isolate for seven days.|During this time, you must not leave your house.",
+            ),
+        },
+        NarrativeEvent{
+            starts_act: true,
+            criterion: NarrativeCriterion::ElapsedRel(7.*5.),
+            action: action().send_text(
+                "Department of Health",
+                "Your Covid quarantine has finished. You can now leave your house. Stay safe out there.",
+            ),
+        },
+    ]
 }
 
 fn action() -> NarrativeActions {

@@ -9,6 +9,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::{na::Translation2, prelude::*};
 
 use crate::{environment::Location, player::Player};
+use crate::npc::spawn_npc;
 
 #[derive(Component, Debug, Clone)]
 pub struct Teleporter {
@@ -34,6 +35,7 @@ pub fn teleportation_system(
     mut environment_query: Query<(&mut TextureAtlasSprite, &mut Environment)>,
     environment_collider_query: Query<Entity, With<EnvironmentCollider>>,
     mut music_state: ResMut<MusicState>,
+    asset_server: Res<AssetServer>,
 ) {
     let mut player_position = player_info.single_mut();
 
@@ -48,19 +50,21 @@ pub fn teleportation_system(
                     &mut commands,
                     &environment_collider_query,
                     &mut music_state,
+                    &asset_server,
                 );
             }
         }
     }
 }
 
-fn teleport(
+pub fn teleport(
     teleporter: &Teleporter,
     player_position: &mut Mut<RigidBodyPositionComponent>,
     environment_query: &mut Query<(&mut TextureAtlasSprite, &mut Environment)>,
     commands: &mut Commands,
     environment_collider_query: &Query<Entity, With<EnvironmentCollider>>,
     music_state: &mut ResMut<MusicState>,
+    asset_server: &Res<AssetServer>,
 ) {
     let destination = teleporter.destination;
     // First, despawn the current environment
@@ -70,6 +74,12 @@ fn teleport(
 
     // Then create the new environment
     create_environment(destination, commands, music_state);
+    match destination {
+        Location::Park => {
+                spawn_npc(commands, asset_server);
+            }
+        _ => {},
+    };
 
     // Change the sprite
     let (mut sprite, mut environment) = environment_query.single_mut();

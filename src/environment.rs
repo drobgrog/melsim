@@ -8,7 +8,7 @@ use crate::{
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Location {
     Home,
     Park,
@@ -52,7 +52,7 @@ pub fn setup_environment(
 
     create_environment(Location::Home, &mut commands, &mut music_state);
 
-    // spawn_npc(&mut commands, &asset_server);
+    //spawn_npc(&mut commands, &asset_server);
     spawn_pickup(
         Pickup::Potplant,
         [10, 13],

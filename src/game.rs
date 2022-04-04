@@ -2,10 +2,12 @@ use crate::music::MusicState;
 use crate::narrative::{NarrativeActions, NarrativeCriterion, NarrativeEvent};
 use crate::pickup;
 use crate::player::Player;
-use crate::{narrative, ui, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::{narrative, ui, teleportation, environment, SCREEN_HEIGHT, SCREEN_WIDTH};
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
-const STARTING_SANITY: i32 = 75;
+pub const STARTING_SANITY: i32 = 75;
+const COVID_RISK_THRESHOLD: f32 = 0.05;
 
 #[derive(Default)]
 pub struct GameState {
@@ -85,7 +87,7 @@ pub fn debug_keys(
     }
     if key.just_pressed(KeyCode::M) {
         println!("M PRESSED");
-        let next_index = if music_state.current_track_index == 0 {
+        let next_index = if music_state.changing_from == 0 {
             1
         } else {
             0
@@ -108,6 +110,8 @@ pub fn logic(
     time: Res<Time>,
     asset_server: Res<AssetServer>,
     player: Query<(&Player, &Transform)>,
+    pickups_query: Query<(&pickup::Pickup,)>,
+    environment_query: Query<(&environment::Environment,)>,
 ) {
     if state.sanity == 0 {
         game_over(&mut commands, &mut state);
@@ -131,7 +135,14 @@ pub fn logic(
         );
     }
 
-    state.run_narrative(&time, &mut commands, &asset_server, &player);
+    state.run_narrative(
+        &time,
+        &mut commands,
+        &asset_server,
+        &player,
+        &pickups_query,
+        &environment_query,
+    );
 }
 
 fn game_over(commands: &mut Commands, state: &mut GameState) {
@@ -169,8 +180,9 @@ impl GameState {
         self.sanity = STARTING_SANITY;
         self.covid_risk = 0.5;
         self.main_narrative = narrative::make_main_narrative();
-        self.covid_narrative = narrative::make_main_narrative();
+        self.covid_narrative = narrative::make_covid_narrative();
         self.game_over_image = asset_server.load("game_over.png");
+        let _dummy: Handle<Image> = asset_server.load("close_contact_alert.png");
     }
 
     fn add_text_message(
@@ -320,6 +332,8 @@ impl GameState {
         commands: &mut Commands,
         asset_server: &Res<AssetServer>,
         player_query: &Query<(&Player, &Transform)>,
+        pickups_query: &Query<(&pickup::Pickup,)>,
+        environment_query: &Query<(&environment::Environment,)>,
     ) {
         if self.in_covid_narrative && self.next_covid_narrative_id >= self.covid_narrative.len() {
             // end of the covid narrative, so switch back to the regular narrative
@@ -329,11 +343,37 @@ impl GameState {
         }
 
         if self.in_covid_narrative {
-            panic!("not implemented");
+            if self.criterion_met(
+                &self.covid_narrative[self.next_covid_narrative_id].criterion,
+                pickups_query,
+                environment_query,
+                time,
+            ) {
+                let (_, player_tx) = player_query.single();
+                self.do_narrative_actions(
+                    self.covid_narrative[self.next_covid_narrative_id].action.clone(),
+                    time,
+                    commands,
+                    asset_server,
+                    player_tx,
+                );
+                self.narrative_last_event = time.seconds_since_startup();
+                self.next_covid_narrative_id += 1;
+            }
+
+            if self.next_covid_narrative_id > self.covid_narrative.len() {
+                // switch back to main narrative
+                self.in_covid_narrative = false;
+            }
         } else if self.next_narrative_id >= self.main_narrative.len() {
             println!("Uh-oh, got to the end of the narrative!");
         } else {
-            if self.criterion_met(&self.main_narrative[self.next_narrative_id].criterion, time) {
+            if self.criterion_met(
+                &self.main_narrative[self.next_narrative_id].criterion,
+                pickups_query,
+                environment_query,
+                time,
+            ) {
                 let (_, player_tx) = player_query.single();
                 self.do_narrative_actions(
                     self.main_narrative[self.next_narrative_id].action.clone(),
@@ -351,12 +391,23 @@ impl GameState {
         }
     }
 
-    fn criterion_met(&self, c: &NarrativeCriterion, time: &Res<Time>) -> bool {
+    fn criterion_met(&self,
+        c: &NarrativeCriterion,
+        pickups_query: &Query<(&pickup::Pickup,)>,
+        environment_query: &Query<(&environment::Environment,)>,
+        time: &Res<Time>
+    ) -> bool {
         return match c {
             NarrativeCriterion::ElapsedRel(v) => {
                 time.seconds_since_startup() - self.narrative_last_event > *v
             }
-            NarrativeCriterion::ClearedAll => panic!(" all cleareD?"),
+            NarrativeCriterion::ClearedAll => {
+                pickups_query.is_empty()
+            }
+            NarrativeCriterion::InEnvironment(l) => {
+                let (current_env,) = environment_query.single();
+                &current_env.location == l
+            }
         };
     }
 
@@ -391,5 +442,66 @@ impl GameState {
                 s.narrative_actions,
             );
         }
+    }
+
+    pub fn set_covid_risk(&mut self, covid_risk: f32, time: &Res<Time>) {
+        let old_scr = self.show_covid_risk;
+        self.covid_risk = covid_risk;
+        if covid_risk > COVID_RISK_THRESHOLD {
+            self.show_covid_risk = true;
+        } else {
+            self.show_covid_risk = false;
+        }
+
+        if old_scr != self.show_covid_risk {
+            self.last_covid_risk_shown = time.seconds_since_startup();
+        }
+    }
+
+    pub fn covid_narrative_switch(&mut self,
+        time: &Res<Time>,
+        player_position: &mut Mut<RigidBodyPositionComponent>,
+        environment_query: &mut Query<(&mut TextureAtlasSprite, &mut environment::Environment)>,
+        commands: &mut Commands,
+        environment_collider_query: &Query<Entity, With<environment::EnvironmentCollider>>,
+        music_state: &mut ResMut<MusicState>,
+        asset_server: &Res<AssetServer>,
+    ) {
+        // The player has been exposed to covid so we need to switch over to the covid narrative,
+        // and handle a million housekeeping questions
+
+        // Narrative stuff
+        self.in_covid_narrative = true;
+        // when we return to the main narrative, back up to the start of the last act
+        self.next_narrative_id = self.narrative_start_of_act;
+        self.narrative_last_event = time.seconds_since_startup(); // establish the start of the Covid arc
+
+        // Teleport back home
+        let teleporter = teleportation::Teleporter::new(
+            environment::Location::Home,
+            [5, 5].into(),
+        );
+        teleportation::teleport(
+            &teleporter,
+            player_position,
+            environment_query,
+            commands,
+            environment_collider_query,
+            music_state,
+            asset_server,
+        );
+
+        // Spawn the scary transition screen
+        let xpos = -SCREEN_WIDTH / 2. + 1000./2.;
+        commands.spawn_bundle(SpriteBundle {
+            texture: asset_server.load("close_contact_alert.png"),
+            transform: Transform {
+                translation: [xpos, 0., 50.].into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        }).insert(ui::CovidTransitionUiTag{
+            time_left: ui::TRANSITION_LENGTH,
+        });
     }
 }
