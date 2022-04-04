@@ -51,18 +51,6 @@ pub fn setup_environment(
         .insert(Environment::new(Location::Home));
 
     create_environment(Location::Home, &mut commands, &mut music_state);
-
-    // spawn_npc(&mut commands, &asset_server, [10, 12]);
-    spawn_pickup(
-        Pickup::Potplant,
-        [10, 13],
-        &mut commands,
-        &asset_server,
-        NarrativeActions::new_with_texts(vec![NarrativeTextMessage {
-            sender: "Bowl of Petunias".into(),
-            body: "Oh no, not again".into(),
-        }]),
-    );
 }
 
 pub fn create_environment(
