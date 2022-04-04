@@ -24,6 +24,7 @@ pub struct NarrativeActions {
     pub send_texts: Vec<NarrativeTextMessage>,
     pub change_sanity: Option<i32>, // Some(0) produces a literal '0' indicator
     pub spawn_item: Vec<SpawnablePickup>,
+    pub spawn_npc: Vec<SpawnableNpc>,
 }
 
 impl NarrativeActions {
@@ -60,6 +61,11 @@ pub struct SpawnablePickup {
     pub prototype: pickup::Pickup,
     pub location: (usize, usize),
     pub narrative_actions: NarrativeActions,
+}
+
+#[derive(Clone)]
+pub struct SpawnableNpc {
+    pub location: (usize, usize),
 }
 
 pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
@@ -99,7 +105,8 @@ pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
             let mut a = action();
 
             // Process the action
-            if non_empty(get(&h, &x, "Sender")) {
+            let sender = get(&h, &x, "Sender");
+            if non_empty(sender) && !sender.starts_with("[") {
                 let polished = get(&h, &x, "Body (Polished)");
                 let rough = get(&h, &x, "Body (Rough)");
                 a.send_texts.push(NarrativeTextMessage{
@@ -116,6 +123,14 @@ pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
             let spawn_item = get(&h, &x, "Spawn Item?");
             if non_empty(spawn_item) {
                 a.spawn_item.push(str2spawnitem(spawn_item));
+            }
+
+            let spawn_npc = get(&h, &x, "Spawn NPC");
+            if non_empty(spawn_npc) {
+                let parts: Vec<&str> = spawn_npc.split(";").collect();
+                a.spawn_npc.push(SpawnableNpc{
+                    location: (usize::from_str(parts[1]).unwrap(), usize::from_str(parts[2]).unwrap()),
+                });
             }
 
             rv.push(NarrativeEvent{

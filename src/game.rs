@@ -2,7 +2,7 @@ use crate::music::MusicState;
 use crate::narrative::{NarrativeActions, NarrativeCriterion, NarrativeEvent};
 use crate::pickup;
 use crate::player::Player;
-use crate::{narrative, ui, teleportation, environment, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::{npc, narrative, ui, teleportation, environment, SCREEN_HEIGHT, SCREEN_WIDTH};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -462,6 +462,10 @@ impl GameState {
                 asset_server,
                 s.narrative_actions,
             );
+        }
+
+        for s in a.spawn_npc {
+            npc::spawn_npc(commands, asset_server);
         }
     }
 
