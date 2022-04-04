@@ -1,10 +1,10 @@
 use bevy::prelude::Component;
 
-use crate::pickup;
 use crate::environment::Location;
-use std::fs::File;
-use std::collections::HashMap;
+use crate::pickup;
 use csv::StringRecord;
+use std::collections::HashMap;
+use std::fs::File;
 use std::str::FromStr;
 
 pub struct NarrativeEvent {
@@ -24,6 +24,7 @@ pub struct NarrativeActions {
     pub send_texts: Vec<NarrativeTextMessage>,
     pub change_sanity: Option<i32>, // Some(0) produces a literal '0' indicator
     pub spawn_item: Vec<SpawnablePickup>,
+    pub spawn_npc: Vec<SpawnableNpc>,
 }
 
 impl NarrativeActions {
@@ -62,6 +63,11 @@ pub struct SpawnablePickup {
     pub narrative_actions: NarrativeActions,
 }
 
+#[derive(Clone)]
+pub struct SpawnableNpc {
+    pub location: [usize; 2],
+}
+
 pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
     let file = File::open(file).expect("error opening narrative csv");
     let mut rdr = csv::Reader::from_reader(file);
@@ -76,7 +82,11 @@ pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
         let non_time_condition = if non_empty(get(&h, &x, "Cleared All Pickups?")) {
             Some(NarrativeCriterion::ClearedAll)
         } else if non_empty(get(&h, &x, "Location change?")) {
-            Some(NarrativeCriterion::InEnvironment(str2location(get(&h, &x, "Location change?"))))
+            Some(NarrativeCriterion::InEnvironment(str2location(get(
+                &h,
+                &x,
+                "Location change?",
+            ))))
         } else {
             None
         };
@@ -84,7 +94,7 @@ pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
         let time = get(&h, &x, "Elapsed Time");
         if non_empty(time) && non_time_condition.is_some() {
             // Special case - if there is a time and other criteria, generate dummy criterion
-            rv.push(NarrativeEvent{
+            rv.push(NarrativeEvent {
                 starts_act: false, // TODO
                 criterion: non_time_condition.unwrap(),
                 action: action(),
@@ -94,15 +104,17 @@ pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
         // Now create the real thing iff 'time' is non-empty
         // The logic of this is that we end up skipping stuff with no criteria at all
         if non_empty(time) {
-            let criterion = NarrativeCriterion::ElapsedRel(f64::from_str(time).expect("bad parse time"));
+            let criterion =
+                NarrativeCriterion::ElapsedRel(f64::from_str(time).expect("bad parse time"));
 
             let mut a = action();
 
             // Process the action
-            if non_empty(get(&h, &x, "Sender")) {
+            let sender = get(&h, &x, "Sender");
+            if non_empty(sender) && !sender.starts_with("[") {
                 let polished = get(&h, &x, "Body (Polished)");
                 let rough = get(&h, &x, "Body (Rough)");
-                a.send_texts.push(NarrativeTextMessage{
+                a.send_texts.push(NarrativeTextMessage {
                     sender: String::from(get(&h, &x, "Sender")),
                     body: String::from(if non_empty(polished) { polished } else { rough }),
                 });
@@ -118,7 +130,18 @@ pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
                 a.spawn_item.push(str2spawnitem(spawn_item));
             }
 
-            rv.push(NarrativeEvent{
+            let spawn_npc = get(&h, &x, "Spawn NPC");
+            if non_empty(spawn_npc) {
+                let parts: Vec<&str> = spawn_npc.split(";").collect();
+                a.spawn_npc.push(SpawnableNpc {
+                    location: [
+                        usize::from_str(parts[1]).unwrap(),
+                        usize::from_str(parts[2]).unwrap(),
+                    ],
+                });
+            }
+
+            rv.push(NarrativeEvent {
                 starts_act: true, // TODO
                 criterion: criterion,
                 action: a,
@@ -133,18 +156,20 @@ fn str2location(s: &str) -> Location {
     match s {
         "Park" => Location::Park,
         "Home" => Location::Home,
-        _      => panic!("bad location >>{}<<", s),
+        _ => panic!("bad location >>{}<<", s),
     }
 }
 
 fn str2spawnitem(s: &str) -> SpawnablePickup {
     match s {
-        "Care Package" | "TV" | "Fridge" | "Pillow" | "Soap" | "Towel" | "Video Game" => SpawnablePickup{
-            // TODO FIX Kane
-            prototype: pickup::Pickup::Potplant,
-            location: (5, 5),
-            narrative_actions: action().change_sanity(10),
-        },
+        "Care Package" | "TV" | "Fridge" | "Pillow" | "Soap" | "Towel" | "Video Game" => {
+            SpawnablePickup {
+                // TODO FIX Kane
+                prototype: pickup::Pickup::Potplant,
+                location: (5, 5),
+                narrative_actions: action().change_sanity(10),
+            }
+        }
         _ => panic!("bad spawn: {}", s),
     }
 }
