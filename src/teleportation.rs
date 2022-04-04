@@ -2,6 +2,7 @@ use crate::{
     environment::{
         create_environment, tile_coords_to_screen_pos, Environment, EnvironmentCollider,
     },
+    music::MusicState,
     TILE_SIZE,
 };
 use bevy::prelude::*;
@@ -32,6 +33,7 @@ pub fn teleportation_system(
     teleporter_query: Query<(Entity, &Teleporter)>,
     mut environment_query: Query<(&mut TextureAtlasSprite, &mut Environment)>,
     environment_collider_query: Query<Entity, With<EnvironmentCollider>>,
+    mut music_state: ResMut<MusicState>,
 ) {
     let mut player_position = player_info.single_mut();
 
@@ -45,6 +47,7 @@ pub fn teleportation_system(
                     &mut environment_query,
                     &mut commands,
                     &environment_collider_query,
+                    &mut music_state,
                 );
             }
         }
@@ -57,6 +60,7 @@ fn teleport(
     environment_query: &mut Query<(&mut TextureAtlasSprite, &mut Environment)>,
     commands: &mut Commands,
     environment_collider_query: &Query<Entity, With<EnvironmentCollider>>,
+    music_state: &mut ResMut<MusicState>,
 ) {
     let destination = teleporter.destination;
     // First, despawn the current environment
@@ -65,7 +69,7 @@ fn teleport(
     }
 
     // Then create the new environment
-    create_environment(destination, commands);
+    create_environment(destination, commands, music_state);
 
     // Change the sprite
     let (mut sprite, mut environment) = environment_query.single_mut();

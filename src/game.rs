@@ -1,3 +1,4 @@
+use crate::music::MusicState;
 use crate::narrative::{NarrativeActions, NarrativeCriterion, NarrativeEvent};
 use crate::pickup;
 use crate::player::Player;
@@ -49,6 +50,7 @@ pub fn debug_keys(
     mut commands: Commands,
     key: Res<Input<KeyCode>>,
     mut state: ResMut<GameState>,
+    mut music_state: ResMut<MusicState>,
     time: Res<Time>,
     asset_server: Res<AssetServer>,
     player: Query<(&Player, &Transform)>,
@@ -80,6 +82,15 @@ pub fn debug_keys(
             asset_server.load("fonts/monofonto.ttf"),
             player_tx.translation,
         );
+    }
+    if key.just_pressed(KeyCode::M) {
+        println!("M PRESSED");
+        let next_index = if music_state.current_track_index == 0 {
+            1
+        } else {
+            0
+        };
+        music_state.switch_tracks(next_index);
     }
 
     if key.just_pressed(KeyCode::G) {
