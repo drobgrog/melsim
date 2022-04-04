@@ -19,7 +19,7 @@ pub struct GameState {
     pub last_msg_animation_time: f64,
 
     // Sanity related information
-    pub sanity: i32,
+    sanity: i32,
     // The last time sanity changed due to the passage of time
     // This gets updated (a) when we change sanity, or (b) when we switch environment
     pub last_sanity_tick_update: f64,
@@ -69,7 +69,7 @@ pub fn debug_keys(
     }
     if key.just_pressed(KeyCode::P) {
         let (_, player_tx) = player.single();
-        state.sanity += 3;
+        state.change_sanity(3);
         ui::spawn_sanity_number(
             3,
             &mut commands,
@@ -97,7 +97,7 @@ pub fn debug_keys(
     }
 
     if key.just_pressed(KeyCode::G) {
-        state.sanity = 0;
+        state.change_sanity(-100);
     }
 }
 
@@ -432,6 +432,15 @@ impl GameState {
         };
     }
 
+    pub fn change_sanity(&mut self, delta: i32) {
+        // no need to clamp on the bottom -- that ends the game
+        self.sanity = i32::min(self.sanity + delta, 100);
+    }
+
+    pub fn get_sanity(&self) -> i32 {
+        return self.sanity;
+    }
+
     pub fn do_narrative_actions(
         &mut self,
         a: NarrativeActions,
@@ -441,7 +450,7 @@ impl GameState {
         player_tx: &Transform,
     ) {
         if let Some(ds) = a.change_sanity {
-            self.sanity += ds;
+            self.change_sanity(ds);
             ui::spawn_sanity_number(
                 ds,
                 commands,

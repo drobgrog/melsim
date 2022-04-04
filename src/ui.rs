@@ -305,7 +305,7 @@ pub fn update_sanity_bar_covering(mut query: Query<(&mut Sprite, &mut Transform,
         Some(v) => v.x,
         None    => panic!("??"),
     };
-    let desired_width = mhb_bar_filling_width() * ( (100 - state.sanity) as f32 / 100.);
+    let desired_width = mhb_bar_filling_width() * ( (100 - state.get_sanity()) as f32 / 100.);
 
     // animate between old and new width
     // this is an semi-elastic algorithm design to go faster the further we are from the true value
