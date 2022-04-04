@@ -1,8 +1,9 @@
 use crate::music::MusicState;
 use crate::narrative::{NarrativeActions, NarrativeCriterion, NarrativeEvent};
-use crate::pickup;
 use crate::player::Player;
-use crate::{environment, narrative, npc, teleportation, ui, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::sfx::{SFXSystem, SoundEffect};
+use crate::{environment, narrative, teleportation, ui, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::{npc, pickup};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -109,6 +110,7 @@ pub fn logic(
     player: Query<(&Player, &Transform)>,
     pickups_query: Query<(&pickup::Pickup,)>,
     environment_query: Query<(&environment::Environment,)>,
+    mut sfx_system: ResMut<SFXSystem>,
 ) {
     if state.sanity <= 0 {
         game_over(&mut commands, &mut state);
@@ -130,6 +132,11 @@ pub fn logic(
             asset_server.load("fonts/monofonto.ttf"),
             player_tx.translation,
         );
+        if sanity_change > 0 {
+            sfx_system.play_sfx(SoundEffect::SanityUp);
+        } else {
+            sfx_system.play_sfx(SoundEffect::SanityDown);
+        }
     }
 
     state.run_narrative(
@@ -139,6 +146,7 @@ pub fn logic(
         &player,
         &pickups_query,
         &environment_query,
+        &mut sfx_system,
     );
 }
 
@@ -189,6 +197,7 @@ impl GameState {
         time: &Res<Time>,
         commands: &mut Commands,
         asset_server: &Res<AssetServer>,
+        sfx_system: &mut SFXSystem,
     ) {
         self.messages.push(TextMessage {
             sender: String::from(sender),
@@ -196,6 +205,8 @@ impl GameState {
             e: None,
         });
         self.last_msg_animation_time = time.seconds_since_startup();
+
+        sfx_system.play_sfx(SoundEffect::Text);
 
         // Trigger a full rebuild -- delete everything else
         for x in &mut self.messages {
@@ -350,6 +361,7 @@ impl GameState {
         player_query: &Query<(&Player, &Transform)>,
         pickups_query: &Query<(&pickup::Pickup,)>,
         environment_query: &Query<(&environment::Environment,)>,
+        sfx_system: &mut SFXSystem,
     ) {
         if self.in_covid_narrative && self.next_covid_narrative_id >= self.covid_narrative.len() {
             // end of the covid narrative, so switch back to the regular narrative
@@ -374,6 +386,7 @@ impl GameState {
                     commands,
                     asset_server,
                     player_tx,
+                    sfx_system,
                 );
                 self.narrative_last_event = time.seconds_since_startup();
                 self.next_covid_narrative_id += 1;
@@ -399,6 +412,7 @@ impl GameState {
                     commands,
                     asset_server,
                     player_tx,
+                    sfx_system,
                 );
                 if self.main_narrative[self.next_narrative_id].starts_act {
                     self.narrative_start_of_act = self.next_narrative_id;
@@ -444,6 +458,7 @@ impl GameState {
         commands: &mut Commands,
         asset_server: &Res<AssetServer>,
         player_tx: &Transform,
+        sfx_system: &mut SFXSystem,
     ) {
         if let Some(ds) = a.change_sanity {
             self.change_sanity(ds);
@@ -453,10 +468,15 @@ impl GameState {
                 asset_server.load("fonts/monofonto.ttf"),
                 player_tx.translation,
             );
+            if ds > 0 {
+                sfx_system.play_sfx(SoundEffect::SanityUp);
+            } else {
+                sfx_system.play_sfx(SoundEffect::SanityDown);
+            }
         }
 
         for m in a.send_texts {
-            self.add_text_message(&m.sender, &m.body, time, commands, asset_server);
+            self.add_text_message(&m.sender, &m.body, time, commands, asset_server, sfx_system);
         }
 
         for s in a.spawn_item {
