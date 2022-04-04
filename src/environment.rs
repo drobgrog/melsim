@@ -36,11 +36,14 @@ pub fn setup_environment(
     let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(1000.0, 1000.0), 3, 1);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
+    let x_pos = -(SCREEN_WIDTH / 2.) + 500.;
+    let y_pos = ((SCREEN_HEIGHT / 2.) - 500.) - 30.;
+
     commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: texture_atlas_handle,
             transform: Transform {
-                translation: [-150., -30., 0.].into(),
+                translation: [x_pos, y_pos, 0.].into(),
                 ..Default::default()
             },
             ..Default::default()
@@ -116,6 +119,9 @@ fn get_environment_collider_and_teleporters(
                 EnvironmentCollider::new(2, 18, 18, 2),
                 EnvironmentCollider::new(4, 0, 16, 2),
                 EnvironmentCollider::new(18, 2, 2, 12),
+                EnvironmentCollider::new(5, 2, 2, 2),  // sign
+                EnvironmentCollider::new(2, 14, 3, 4), // tree
+                EnvironmentCollider::new(15, 2, 4, 3), // swings
             ];
             let teleporters = vec![
                 (
@@ -188,6 +194,7 @@ fn add_environment_collider(commands: &mut Commands, environment_collider: &Envi
             shape: ColliderShape::cuboid(width as f32 / 2., height as f32 / 2.).into(),
             ..Default::default()
         })
+        .insert(ColliderDebugRender::with_id(2))
         .insert(environment_collider.clone());
 }
 
