@@ -69,6 +69,7 @@ pub fn debug_keys(
     }
     if key.just_pressed(KeyCode::P) {
         let (_, player_tx) = player.single();
+        state.sanity += 3;
         ui::spawn_sanity_number(
             3,
             &mut commands,
