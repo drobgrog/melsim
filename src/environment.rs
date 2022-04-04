@@ -95,7 +95,7 @@ fn get_environment_collider_and_teleporters(
             ];
             let teleporters = vec![(
                 EnvironmentCollider::new(1, 19, 3, 1),
-                Teleporter::new(Location::Park, [2, 2]),
+                Teleporter::new(Location::Park, [2, 3]),
             )];
 
             (environment_colliders, teleporters)
