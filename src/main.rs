@@ -6,6 +6,7 @@ mod narrative;
 pub mod npc;
 pub mod pickup;
 mod player;
+pub mod sfx;
 pub mod teleportation;
 mod ui;
 use crate::covid::covid_system;
