@@ -11,8 +11,11 @@ pub struct MusicState {
 
 impl MusicState {
     pub fn switch_tracks(&mut self, index: usize) {
+        // There is a race condition where the initial setup of the environment may get called before we've loaded our tracks.
+        // We handle this by just playing the home music track when the game starts, and ignoring invalid indicies.
         if self.tracks.len() <= index {
-            panic!("Invalid track selection - {}", index);
+            println!("Invalid track selection - {}", index);
+            return;
         }
 
         self.next_track_index = Some(index);
