@@ -110,6 +110,7 @@ pub fn logic(
     time: Res<Time>,
     asset_server: Res<AssetServer>,
     player: Query<(&Player, &Transform)>,
+    pickups_query: Query<(&pickup::Pickup,)>,
 ) {
     if state.sanity == 0 {
         game_over(&mut commands, &mut state);
@@ -133,7 +134,13 @@ pub fn logic(
         );
     }
 
-    state.run_narrative(&time, &mut commands, &asset_server, &player);
+    state.run_narrative(
+        &time,
+        &mut commands,
+        &asset_server,
+        &player,
+        &pickups_query,
+    );
 }
 
 fn game_over(commands: &mut Commands, state: &mut GameState) {
@@ -323,6 +330,7 @@ impl GameState {
         commands: &mut Commands,
         asset_server: &Res<AssetServer>,
         player_query: &Query<(&Player, &Transform)>,
+        pickups_query: &Query<(&pickup::Pickup,)>,
     ) {
         if self.in_covid_narrative && self.next_covid_narrative_id >= self.covid_narrative.len() {
             // end of the covid narrative, so switch back to the regular narrative
@@ -332,7 +340,11 @@ impl GameState {
         }
 
         if self.in_covid_narrative {
-            if self.criterion_met(&self.covid_narrative[self.next_covid_narrative_id].criterion, time) {
+            if self.criterion_met(
+                &self.covid_narrative[self.next_covid_narrative_id].criterion,
+                pickups_query,
+                time,
+            ) {
                 let (_, player_tx) = player_query.single();
                 self.do_narrative_actions(
                     self.covid_narrative[self.next_covid_narrative_id].action.clone(),
@@ -352,7 +364,11 @@ impl GameState {
         } else if self.next_narrative_id >= self.main_narrative.len() {
             println!("Uh-oh, got to the end of the narrative!");
         } else {
-            if self.criterion_met(&self.main_narrative[self.next_narrative_id].criterion, time) {
+            if self.criterion_met(
+                &self.main_narrative[self.next_narrative_id].criterion,
+                pickups_query,
+                time,
+            ) {
                 let (_, player_tx) = player_query.single();
                 self.do_narrative_actions(
                     self.main_narrative[self.next_narrative_id].action.clone(),
@@ -370,12 +386,18 @@ impl GameState {
         }
     }
 
-    fn criterion_met(&self, c: &NarrativeCriterion, time: &Res<Time>) -> bool {
+    fn criterion_met(&self,
+        c: &NarrativeCriterion,
+        pickups_query: &Query<(&pickup::Pickup,)>,
+        time: &Res<Time>
+    ) -> bool {
         return match c {
             NarrativeCriterion::ElapsedRel(v) => {
                 time.seconds_since_startup() - self.narrative_last_event > *v
             }
-            NarrativeCriterion::ClearedAll => panic!(" all cleareD?"),
+            NarrativeCriterion::ClearedAll => {
+                pickups_query.is_empty()
+            }
         };
     }
 

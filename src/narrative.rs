@@ -88,6 +88,14 @@ pub fn make_main_narrative() -> Vec<NarrativeEvent> {
                 Default::default(),
             ),
         },
+        NarrativeEvent{
+            starts_act: false,
+            criterion: NarrativeCriterion::ClearedAll,
+            action: action().send_text(
+                "The Game",
+                "You picked up the thing",
+            ),
+        },
     ];
 }
 
