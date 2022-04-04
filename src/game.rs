@@ -2,10 +2,12 @@ use crate::music::MusicState;
 use crate::narrative::{NarrativeActions, NarrativeCriterion, NarrativeEvent};
 use crate::pickup;
 use crate::player::Player;
-use crate::{narrative, ui, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::{narrative, ui, teleportation, environment, SCREEN_HEIGHT, SCREEN_WIDTH};
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 pub const STARTING_SANITY: i32 = 75;
+const COVID_RISK_THRESHOLD: f32 = 0.05;
 
 #[derive(Default)]
 pub struct GameState {
@@ -169,8 +171,9 @@ impl GameState {
         self.sanity = STARTING_SANITY;
         self.covid_risk = 0.5;
         self.main_narrative = narrative::make_main_narrative();
-        self.covid_narrative = narrative::make_main_narrative();
+        self.covid_narrative = narrative::make_covid_narrative();
         self.game_over_image = asset_server.load("game_over.png");
+        let _dummy: Handle<Image> = asset_server.load("close_contact_alert.png");
     }
 
     fn add_text_message(
@@ -329,7 +332,23 @@ impl GameState {
         }
 
         if self.in_covid_narrative {
-            panic!("not implemented");
+            if self.criterion_met(&self.covid_narrative[self.next_covid_narrative_id].criterion, time) {
+                let (_, player_tx) = player_query.single();
+                self.do_narrative_actions(
+                    self.covid_narrative[self.next_covid_narrative_id].action.clone(),
+                    time,
+                    commands,
+                    asset_server,
+                    player_tx,
+                );
+                self.narrative_last_event = time.seconds_since_startup();
+                self.next_covid_narrative_id += 1;
+            }
+
+            if self.next_covid_narrative_id > self.covid_narrative.len() {
+                // switch back to main narrative
+                self.in_covid_narrative = false;
+            }
         } else if self.next_narrative_id >= self.main_narrative.len() {
             println!("Uh-oh, got to the end of the narrative!");
         } else {
@@ -391,5 +410,66 @@ impl GameState {
                 s.narrative_actions,
             );
         }
+    }
+
+    pub fn set_covid_risk(&mut self, covid_risk: f32, time: &Res<Time>) {
+        let old_scr = self.show_covid_risk;
+        self.covid_risk = covid_risk;
+        if covid_risk > COVID_RISK_THRESHOLD {
+            self.show_covid_risk = true;
+        } else {
+            self.show_covid_risk = false;
+        }
+
+        if old_scr != self.show_covid_risk {
+            self.last_covid_risk_shown = time.seconds_since_startup();
+        }
+    }
+
+    pub fn covid_narrative_switch(&mut self,
+        time: &Res<Time>,
+        player_position: &mut Mut<RigidBodyPositionComponent>,
+        environment_query: &mut Query<(&mut TextureAtlasSprite, &mut environment::Environment)>,
+        commands: &mut Commands,
+        environment_collider_query: &Query<Entity, With<environment::EnvironmentCollider>>,
+        music_state: &mut ResMut<MusicState>,
+        asset_server: &Res<AssetServer>,
+    ) {
+        // The player has been exposed to covid so we need to switch over to the covid narrative,
+        // and handle a million housekeeping questions
+
+        // Narrative stuff
+        self.in_covid_narrative = true;
+        // when we return to the main narrative, back up to the start of the last act
+        self.next_narrative_id = self.narrative_start_of_act;
+        self.narrative_last_event = time.seconds_since_startup(); // establish the start of the Covid arc
+
+        // Teleport back home
+        let teleporter = teleportation::Teleporter::new(
+            environment::Location::Home,
+            [5, 5].into(),
+        );
+        teleportation::teleport(
+            &teleporter,
+            player_position,
+            environment_query,
+            commands,
+            environment_collider_query,
+            music_state,
+            asset_server,
+        );
+
+        // Spawn the scary transition screen
+        let xpos = -SCREEN_WIDTH / 2. + 1000./2.;
+        commands.spawn_bundle(SpriteBundle {
+            texture: asset_server.load("close_contact_alert.png"),
+            transform: Transform {
+                translation: [xpos, 0., 50.].into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        }).insert(ui::CovidTransitionUiTag{
+            time_left: ui::TRANSITION_LENGTH,
+        });
     }
 }

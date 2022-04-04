@@ -92,7 +92,24 @@ pub fn make_main_narrative() -> Vec<NarrativeEvent> {
 }
 
 pub fn make_covid_narrative() -> Vec<NarrativeEvent> {
-    vec![]
+    vec![
+        NarrativeEvent{
+            starts_act: true,
+            criterion: NarrativeCriterion::ElapsedRel(1.0),
+            action: action().send_text(
+                "Department of Health",
+                "You have been exposed to Covid as a close contact with another person. You must isolate for seven days.|During this time, you must not leave your house.",
+            ),
+        },
+        NarrativeEvent{
+            starts_act: true,
+            criterion: NarrativeCriterion::ElapsedRel(7.*5.),
+            action: action().send_text(
+                "Department of Health",
+                "Your Covid quarantine has finished. You can now leave your house. Stay safe out there.",
+            ),
+        },
+    ]
 }
 
 fn action() -> NarrativeActions {

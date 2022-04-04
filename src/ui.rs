@@ -30,6 +30,31 @@ pub struct TextMessageTag {
     pub bottom_to: f32,
 }
 
+#[derive(Component)]
+pub struct CovidTransitionUiTag {
+    pub time_left: f32,
+}
+
+pub const TRANSITION_LENGTH: f32 = 3.;
+
+pub fn covid_transition_ui(
+    mut commands: Commands,
+    mut query: Query<(&mut CovidTransitionUiTag, &mut Transform, Entity)>,
+    time: Res<Time>,
+) {
+    for (mut ctt, mut tx, e) in query.iter_mut() {
+        ctt.time_left -= time.delta_seconds();
+        if ctt.time_left < 0. {
+            commands.entity(e).despawn();
+        } else if ctt.time_left < 1. {
+            tx.scale.x = ctt.time_left;
+            tx.scale.y = ctt.time_left;
+            let rot_fact = 3. * (1. - ctt.time_left);
+            tx.rotation = Quat::from_rotation_z(rot_fact * rot_fact);
+        }
+    }
+}
+
 pub fn spawn_sanity_number(
     number: i32,
     commands: &mut Commands,
@@ -372,6 +397,26 @@ fn ease_in_back(x: f32) -> f32 {
 
     return c3 * x * x * x - c1 * x * x;
 }
+
+/* might be useful in future
+fn ease_out_bounce(mut x: f32) -> f32 {
+    let n1 = 7.5625;
+    let d1 = 2.75;
+
+    if x < 1. / d1 {
+        return n1 * x * x;
+    } else if x < 2. / d1 {
+        x -= 1.5 / d1;
+        return n1 * (x) * x + 0.75;
+    } else if x < 2.5 / d1 {
+        x -= 2.25 / d1;
+        return n1 * (x) * x + 0.9375;
+    } else {
+        x -= 2.625 / d1;
+        return n1 * (x) * x + 0.984375;
+    }
+}
+*/
 
 fn march_2020_dow(day: i32) -> &'static str {
     // 1 March 2020 was a Sunday

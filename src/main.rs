@@ -52,6 +52,7 @@ fn main() {
         .add_system(ui::update_covid_risk)
         .add_system(ui::text_message_animator)
         .add_system(ui::sanity_number_tween)
+        .add_system(ui::covid_transition_ui)
         .add_system(game::logic)
         .add_system(teleportation_system)
         .add_system(game::debug_keys)
