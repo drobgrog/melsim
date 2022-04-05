@@ -39,8 +39,14 @@ pub fn setup_environment(
     let x_pos = -(SCREEN_WIDTH / 2.) + 500.;
     let y_pos = ((SCREEN_HEIGHT / 2.) - 500.) - 30.;
 
+    let starting_location = Location::Shops;
+
     commands
         .spawn_bundle(SpriteSheetBundle {
+            sprite: TextureAtlasSprite {
+                index: 2,
+                ..Default::default()
+            },
             texture_atlas: texture_atlas_handle,
             transform: Transform {
                 translation: [x_pos, y_pos, 0.].into(),
@@ -48,9 +54,9 @@ pub fn setup_environment(
             },
             ..Default::default()
         })
-        .insert(Environment::new(Location::Home));
+        .insert(Environment::new(starting_location.clone()));
 
-    create_environment(Location::Home, &mut commands, &mut music_state);
+    create_environment(starting_location, &mut commands, &mut music_state);
 }
 
 pub fn create_environment(
@@ -99,7 +105,6 @@ fn get_environment_collider_and_teleporters(
                 EnvironmentCollider::new(15, 1, 4, 5),  // bed
                 EnvironmentCollider::new(16, 11, 3, 8), // couch and potplant
                 EnvironmentCollider::new(4, 17, 8, 2),  // kitchen
-                
             ];
             let teleporters = vec![(
                 EnvironmentCollider::new(1, 19, 3, 1),
@@ -138,11 +143,11 @@ fn get_environment_collider_and_teleporters(
                 EnvironmentCollider::new(1, 0, 19, 2),  // top wall
                 EnvironmentCollider::new(1, 19, 19, 1), // bottom wall
                 EnvironmentCollider::new(18, 1, 2, 18), // far right wall
-                EnvironmentCollider::new(6, 6, 10, 4),  // top isle
-                // EnvironmentCollider::new(4, 14, 10, 2),  // bottom isle
-                EnvironmentCollider::new(1, 7, 1, 3), // left of staffed checkout
-                EnvironmentCollider::new(2, 8, 2, 2), // right of staffed checkout
-                EnvironmentCollider::new(1, 13, 3, 3), // aut
+                EnvironmentCollider::new(7, 1, 9, 2),   // top isle
+                EnvironmentCollider::new(7, 7, 9, 3),   // bottom isle
+                EnvironmentCollider::new(1, 7, 2, 3),   // left of staffed checkout
+                EnvironmentCollider::new(3, 8, 2, 2),   // right of staffed checkout
+                EnvironmentCollider::new(1, 13, 3, 3),  // auto checkout
             ];
             let teleporters = vec![
                 (
