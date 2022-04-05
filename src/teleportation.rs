@@ -3,6 +3,8 @@ use crate::{
         create_environment, tile_coords_to_screen_pos, Environment, EnvironmentCollider,
     },
     music::MusicState,
+    npc::{spawn_npc, NPC},
+    pickup::Pickup,
     sfx::{SFXSystem, SoundEffect},
     TILE_SIZE,
 };
@@ -37,6 +39,8 @@ pub fn teleportation_system(
     mut music_state: ResMut<MusicState>,
     asset_server: Res<AssetServer>,
     mut sfx_system: ResMut<SFXSystem>,
+    npc_query: Query<(Entity, &NPC)>,
+    pickup_query: Query<(Entity, &Pickup)>,
 ) {
     let (player_entity, mut player_position) = player_info.single_mut();
 
@@ -48,6 +52,20 @@ pub fn teleportation_system(
             if collider_a.entity() == player_entity || collider_b.entity() == player_entity {
                 sfx_system.play_sfx(SoundEffect::EntranceExit);
                 if intersecting {
+                    for (entity, _) in npc_query.iter() {
+                        commands.entity(entity).despawn();
+                    }
+                    for (entity, _) in pickup_query.iter() {
+                        commands.entity(entity).despawn();
+                    }
+
+                    if teleporter.destination == Location::Park {
+                        spawn_npc(&mut commands, &asset_server, [5, 14]);
+                    }
+                    if teleporter.destination == Location::Shops {
+                        spawn_npc(&mut commands, &asset_server, [6, 14]);
+                    }
+
                     teleport(
                         teleporter,
                         &mut player_position,

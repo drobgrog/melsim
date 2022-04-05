@@ -150,14 +150,14 @@ pub fn load_csv(file: &str) -> Vec<NarrativeEvent> {
         let unlocks = get(&h, &x, "Unlock area?");
         if non_empty(unlocks) {
             for location in unlocks.split(";") {
-                a.teleporter_control.push( (str2location(location), true) );
+                a.teleporter_control.push((str2location(location), true));
             }
         }
 
         let locks = get(&h, &x, "Lock area?");
         if non_empty(locks) {
             for location in locks.split(";") {
-                a.teleporter_control.push( (str2location(location), false) );
+                a.teleporter_control.push((str2location(location), false));
             }
         }
 
@@ -183,14 +183,21 @@ fn str2location(s: &str) -> Location {
 
 fn str2spawnitem(s: &str) -> SpawnablePickup {
     match s {
-        "Care Package" | "TV" | "Fridge" | "Pillow" | "Soap" | "Towel" | "Video Game" => {
-            SpawnablePickup {
-                // TODO FIX Kane
-                prototype: pickup::Pickup::Potplant,
-                location: (5, 5),
-                narrative_actions: action().change_sanity(10),
-            }
-        }
+        "Care Package" => SpawnablePickup {
+            prototype: pickup::Pickup::Potplant,
+            location: (1, 16),
+            narrative_actions: action().change_sanity(20),
+        },
+        "TV" => SpawnablePickup {
+            prototype: pickup::Pickup::Potplant,
+            location: (16, 10),
+            narrative_actions: action().change_sanity(10),
+        },
+        "Fridge" | "Pillow" | "Soap" | "Towel" | "Video Game" => SpawnablePickup {
+            prototype: pickup::Pickup::Potplant,
+            location: (5, 5),
+            narrative_actions: action().change_sanity(10),
+        },
         _ => panic!("bad spawn: {}", s),
     }
 }

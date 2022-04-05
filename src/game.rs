@@ -1,3 +1,4 @@
+use crate::environment::{Environment, Location};
 use crate::music::MusicState;
 use crate::narrative::{NarrativeActions, NarrativeCriterion, NarrativeEvent};
 use crate::player::Player;
@@ -7,7 +8,7 @@ use crate::{npc, pickup};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-pub const STARTING_SANITY: i32 = 75;
+pub const STARTING_SANITY: i32 = 100;
 const COVID_RISK_THRESHOLD: f32 = 0.05;
 
 pub struct AreaAccessControl {
@@ -131,7 +132,8 @@ pub fn logic(
         state.new_day();
     }
 
-    let sanity_change = state.update_sanity(time.seconds_since_startup());
+    let (environment,) = environment_query.single();
+    let sanity_change = state.deduct_sanity_on_timer(time.seconds_since_startup(), environment);
     if sanity_change != 0 {
         let (_, player_tx) = player.single();
         ui::spawn_sanity_number(
@@ -180,7 +182,7 @@ fn game_over(commands: &mut Commands, state: &mut GameState) {
 
 // How often should we lose (/gain) sanity just for existing?
 fn time_for_sanity_loss() -> f64 {
-    5.
+    10.
 }
 
 // How much sanity do we lose then?
@@ -352,7 +354,12 @@ impl GameState {
     fn new_day(&mut self) {}
 
     // Returns the change, if any (so it can be displayed to the user)
-    fn update_sanity(&mut self, time_since_start: f64) -> i32 {
+    fn deduct_sanity_on_timer(&mut self, time_since_start: f64, environment: &Environment) -> i32 {
+        // Only reduce sanity if we're at home.
+        if environment.location != Location::Home {
+            return 0;
+        }
+
         if time_since_start - self.last_sanity_tick_update > time_for_sanity_loss() {
             self.last_sanity_tick_update += time_for_sanity_loss();
             self.sanity += sanity_loss_tick();
