@@ -86,15 +86,20 @@ fn get_environment_collider_and_teleporters(
     match location {
         Location::Home => {
             let environment_colliders = vec![
-                EnvironmentCollider::new(0, 0, 11, 4),
-                EnvironmentCollider::new(10, 0, 9, 1),
-                EnvironmentCollider::new(15, 1, 4, 4),
-                EnvironmentCollider::new(19, 1, 1, 19),
-                EnvironmentCollider::new(0, 4, 3, 5),
-                EnvironmentCollider::new(3, 4, 3, 1),
-                EnvironmentCollider::new(6, 4, 1, 5),
-                EnvironmentCollider::new(0, 8, 1, 11), // bottom left half of wall
-                EnvironmentCollider::new(4, 16, 16, 4), // bottom area
+                EnvironmentCollider::new(0, 0, 1, 20),  // far left wall
+                EnvironmentCollider::new(1, 0, 19, 1),  // top wall
+                EnvironmentCollider::new(1, 19, 19, 1), // bottom wall
+                EnvironmentCollider::new(19, 1, 1, 18), // far right wall
+                EnvironmentCollider::new(1, 1, 4, 4),   // shower
+                EnvironmentCollider::new(1, 5, 2, 2),   // toilet
+                EnvironmentCollider::new(5, 1, 2, 2),   // sink
+                EnvironmentCollider::new(1, 7, 5, 1),   // bathroom bottom wall
+                EnvironmentCollider::new(9, 1, 1, 6),   // bathroom right wall
+                EnvironmentCollider::new(10, 1, 3, 3),  // computer
+                EnvironmentCollider::new(15, 1, 4, 5),  // bed
+                EnvironmentCollider::new(16, 11, 3, 8), // couch and potplant
+                EnvironmentCollider::new(4, 17, 8, 2),  // kitchen
+                
             ];
             let teleporters = vec![(
                 EnvironmentCollider::new(1, 19, 3, 1),
@@ -129,15 +134,15 @@ fn get_environment_collider_and_teleporters(
         }
         Location::Shops => {
             let environment_colliders = vec![
-                EnvironmentCollider::new(0, 0, 1, 20),   // far left wall
-                EnvironmentCollider::new(1, 0, 19, 2),   // top wall
-                EnvironmentCollider::new(1, 19, 19, 1),  // bottom wall
-                EnvironmentCollider::new(18, 1, 20, 18), // far right wall
-                EnvironmentCollider::new(6, 6, 10, 4),   // top isle
-                EnvironmentCollider::new(4, 14, 10, 2),  // bottom isle
-                EnvironmentCollider::new(1, 7, 1, 3),    // left of staffed checkout
-                EnvironmentCollider::new(2, 8, 2, 2),    // right of staffed checkout
-                EnvironmentCollider::new(1, 13, 3, 3),   // aut
+                EnvironmentCollider::new(0, 0, 1, 20),  // far left wall
+                EnvironmentCollider::new(1, 0, 19, 2),  // top wall
+                EnvironmentCollider::new(1, 19, 19, 1), // bottom wall
+                EnvironmentCollider::new(18, 1, 2, 18), // far right wall
+                EnvironmentCollider::new(6, 6, 10, 4),  // top isle
+                // EnvironmentCollider::new(4, 14, 10, 2),  // bottom isle
+                EnvironmentCollider::new(1, 7, 1, 3), // left of staffed checkout
+                EnvironmentCollider::new(2, 8, 2, 2), // right of staffed checkout
+                EnvironmentCollider::new(1, 13, 3, 3), // aut
             ];
             let teleporters = vec![
                 (

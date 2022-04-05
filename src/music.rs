@@ -37,7 +37,7 @@ pub fn setup_music(
     music_state.tracks = vec![
         asset_server.load("music/home.mp3"),
         asset_server.load("music/park.mp3"),
-        asset_server.load("music/test.mp3"),
+        asset_server.load("music/shops.mp3"),
     ];
 
     audio.play_looped_in_channel(music_state.tracks[0].clone(), &music_state.channel);
@@ -55,10 +55,16 @@ pub fn music_system(audio: Res<Audio>, mut music_state: ResMut<MusicState>, time
     if time_change < TRACK_CHANGE_TIME {
         if music_state.changing_from == music_state.changing_to {
             // Fading in (or an aborted change)
-            audio.set_volume_in_channel(((time_change)/TRACK_CHANGE_TIME) as f32, &music_state.channel);
+            audio.set_volume_in_channel(
+                ((time_change) / TRACK_CHANGE_TIME) as f32,
+                &music_state.channel,
+            );
         } else {
             // Fading out
-            audio.set_volume_in_channel((1. - (time_change)/TRACK_CHANGE_TIME) as f32, &music_state.channel);
+            audio.set_volume_in_channel(
+                (1. - (time_change) / TRACK_CHANGE_TIME) as f32,
+                &music_state.channel,
+            );
         }
     } else {
         if music_state.changing_from != music_state.changing_to {
@@ -68,7 +74,10 @@ pub fn music_system(audio: Res<Audio>, mut music_state: ResMut<MusicState>, time
             println!("Switching to track {}", music_state.changing_to);
             music_state.last_track_change = time.seconds_since_startup();
             audio.stop_channel(&music_state.channel);
-            audio.play_looped_in_channel(music_state.tracks[music_state.changing_to].clone(), &music_state.channel);
+            audio.play_looped_in_channel(
+                music_state.tracks[music_state.changing_to].clone(),
+                &music_state.channel,
+            );
         } else {
             // Nothing to do
         }
