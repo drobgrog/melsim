@@ -39,12 +39,12 @@ pub fn setup_environment(
     let x_pos = -(SCREEN_WIDTH / 2.) + 500.;
     let y_pos = ((SCREEN_HEIGHT / 2.) - 500.) - 30.;
 
-    let starting_location = Location::Shops;
+    let starting_location = Location::Home;
 
     commands
         .spawn_bundle(SpriteSheetBundle {
             sprite: TextureAtlasSprite {
-                index: 2,
+                index: 0,
                 ..Default::default()
             },
             texture_atlas: texture_atlas_handle,
