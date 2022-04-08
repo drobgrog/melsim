@@ -194,8 +194,8 @@ impl GameState {
     fn setup(&mut self, asset_server: &Res<AssetServer>) {
         self.sanity = STARTING_SANITY;
         self.covid_risk = 0.5;
-        self.main_narrative = narrative::load_csv("narrative/main.csv");
-        self.covid_narrative = narrative::load_csv("narrative/covid.csv");
+        self.main_narrative = narrative::load_csv("./narrative/main.csv");
+        self.covid_narrative = narrative::load_csv("./narrative/covid.csv");
         self.game_over_image = asset_server.load("game_over.png");
         let _dummy: Handle<Image> = asset_server.load("close_contact_alert.png");
     }

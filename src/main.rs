@@ -9,8 +9,11 @@ mod player;
 pub mod sfx;
 pub mod teleportation;
 mod ui;
+use std::env;
+
 use crate::covid::covid_system;
 use bevy::prelude::*;
+use bevy_embedded_assets::EmbeddedAssetPlugin;
 use bevy_kira_audio::AudioPlugin;
 use bevy_rapier2d::physics::{NoUserData, RapierConfiguration, RapierPhysicsPlugin};
 use environment::setup_environment;
@@ -26,6 +29,12 @@ const SCREEN_WIDTH: f32 = 1324.0;
 pub const TILE_SIZE: f32 = 50.;
 
 fn main() {
+    #[cfg(target_os = "macos")]
+    env::set_current_dir(env::current_exe().unwrap().parent().unwrap()).unwrap();
+
+    let path = env::current_dir().unwrap();
+    println!("The current directory is {}", path.display());
+
     App::new()
         .insert_resource(WindowDescriptor {
             title: String::from("Melbourne Lockdown Simulator"),
