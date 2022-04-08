@@ -55,7 +55,6 @@ pub fn sfx_system(audio: Res<Audio>, mut sfx_system: ResMut<SFXSystem>) {
             SoundEffect::Pickup => sfx_system.pickup.clone(),
             SoundEffect::EntranceExit => sfx_system.entrance_exit.clone(),
             SoundEffect::CashRegister => sfx_system.cash_register.clone(),
-            _ => todo!(),
         };
         audio.play_in_channel(handle, &sfx_system.channel);
     }

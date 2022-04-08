@@ -1,4 +1,5 @@
 [package]
+description = "Melbourne Simulator - 2020 Edition"
 edition = "2021"
 name = "melsim"
 version = "0.1.0"
@@ -16,7 +17,14 @@ bevy = {version = "0.6.1", features = [
   "x11",
   "filesystem_watcher",
 ]}
-bevy_kira_audio = { version = "0.8", features = ["default", "mp3"]}
+bevy_kira_audio = {version = "0.8", features = ["default", "mp3"]}
 bevy_rapier2d = {version = "0.12", features = ["simd-stable", "render"]}
 csv = "1.1"
 rand = "0.8"
+
+[package.metadata.bundle]
+category = "Games"
+identifier = "com.github.drobgrog.melbsim"
+name = "Melbourne Simulator"
+resources = ["assets", "narrative"]
+version = "1.0.0"
